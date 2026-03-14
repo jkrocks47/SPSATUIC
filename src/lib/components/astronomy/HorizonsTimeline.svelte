@@ -252,6 +252,13 @@
 		transition: filter 0.5s ease;
 	}
 
+	/* Safari/iOS: CSS-only fallback — SVG filter chain blocks main thread */
+	@supports (-webkit-touch-callout: none) {
+		.halftone-img {
+			filter: contrast(1.4) grayscale(0.5) brightness(1.1);
+		}
+	}
+
 	/* Remove halftone on hover to reveal full-color image */
 	.event-card-simple:hover .halftone-img {
 		filter: contrast(1.1) grayscale(0);

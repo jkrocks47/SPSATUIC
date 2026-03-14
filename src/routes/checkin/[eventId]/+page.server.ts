@@ -7,11 +7,7 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ params, url, locals }) => {
 	if (!locals.member) {
 		const redirectPath = `/checkin/${params.eventId}?code=${url.searchParams.get('code') || ''}`;
-		throw redirect(303, `/login?redirectTo=${encodeURIComponent(redirectPath)}`);
-	}
-
-	if (!locals.member.emailVerified) {
-		throw redirect(303, '/verify-email');
+		throw redirect(303, `/register?redirectTo=${encodeURIComponent(redirectPath)}`);
 	}
 
 	const code = url.searchParams.get('code');

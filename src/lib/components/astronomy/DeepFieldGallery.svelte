@@ -197,7 +197,7 @@
 <!-- Lightbox Modal -->
 {#if selectedImage}
 	<div
-		class="fixed inset-0 z-50 bg-cosmos-black/95 backdrop-blur-sm flex items-center justify-center p-4"
+		class="fixed inset-0 z-50 bg-cosmos-black/95 md:backdrop-blur-sm flex items-center justify-center p-4"
 		role="dialog"
 		aria-modal="true"
 	>

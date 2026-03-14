@@ -42,18 +42,15 @@
 		return () => mq.removeEventListener('change', handler);
 	});
 
+	// Use Page Visibility API instead of IntersectionObserver
+	// (canvas is position:fixed — always "intersecting", so IO was useless)
 	$effect(() => {
-		if (!browser || !canvas) return;
+		if (!browser) return;
 
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				isVisible = entry.isIntersecting;
-			},
-			{ threshold: 0 }
-		);
-		observer.observe(canvas);
+		const onVisibility = () => { isVisible = !document.hidden; };
+		document.addEventListener('visibilitychange', onVisibility);
 
-		return () => observer.disconnect();
+		return () => document.removeEventListener('visibilitychange', onVisibility);
 	});
 
 	$effect(() => {
@@ -62,20 +59,29 @@
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;
 
+		const isMobile = window.innerWidth < 768;
+		// Cap DPR: 1 on mobile (saves massive fill rate), 2 max on desktop
+		const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1 : 2);
+
 		const resize = () => {
-			canvas!.width = window.innerWidth;
-			canvas!.height = window.innerHeight;
+			const w = window.innerWidth;
+			const h = window.innerHeight;
+			canvas!.width = w * dpr;
+			canvas!.height = h * dpr;
+			canvas!.style.width = w + 'px';
+			canvas!.style.height = h + 'px';
+			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 		};
 		resize();
 		window.addEventListener('resize', resize);
 
-		const isMobile = window.innerWidth < 768;
-		const starCount = isMobile ? 80 : 200;
-		const brightCount = isMobile ? 3 : 7;
+		// Reduced star count on mobile: 35 instead of 80
+		const starCount = isMobile ? 35 : 200;
+		const brightCount = isMobile ? 2 : 7;
 
 		stars = Array.from({ length: starCount }, (_, i) => ({
-			x: Math.random() * canvas!.width,
-			y: Math.random() * canvas!.height,
+			x: Math.random() * window.innerWidth,
+			y: Math.random() * window.innerHeight,
 			size: i < brightCount ? 2.5 + Math.random() * 1.5 : 0.5 + Math.random() * 1.5,
 			opacity: 0.3 + Math.random() * 0.7,
 			speed: 0.05 + Math.random() * 0.15,
@@ -90,8 +96,8 @@
 		function spawnShootingStar() {
 			if (reducedMotion || isMobile) return;
 			const ss: ShootingStar = {
-				x: Math.random() * canvas!.width * 0.8,
-				y: Math.random() * canvas!.height * 0.3,
+				x: Math.random() * window.innerWidth * 0.8,
+				y: Math.random() * window.innerHeight * 0.3,
 				vx: 4 + Math.random() * 3,
 				vy: 2 + Math.random() * 2,
 				life: 0,
@@ -100,6 +106,10 @@
 			};
 			shootingStars.push(ss);
 		}
+
+		// Use logical (CSS) dimensions for drawing, not canvas pixel dimensions
+		const logicalWidth = () => window.innerWidth;
+		const logicalHeight = () => window.innerHeight;
 
 		function draw(now: number) {
 			animationId = requestAnimationFrame(draw);
@@ -110,7 +120,10 @@
 
 			if (!canvas || !ctx) return;
 
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			const w = logicalWidth();
+			const h = logicalHeight();
+
+			ctx.clearRect(0, 0, w, h);
 
 			// Spawn shooting stars periodically
 			if (!reducedMotion && !isMobile && now - lastShootingTime > shootingInterval) {
@@ -125,15 +138,15 @@
 					star.x += Math.sin(star.y * 0.002) * 0.1;
 
 					if (star.y < -5) {
-						star.y = canvas.height + 5;
-						star.x = Math.random() * canvas.width;
+						star.y = h + 5;
+						star.x = Math.random() * w;
 					}
-					if (star.x < -5) star.x = canvas.width + 5;
-					if (star.x > canvas.width + 5) star.x = -5;
+					if (star.x < -5) star.x = w + 5;
+					if (star.x > w + 5) star.x = -5;
 				}
 
-				// Draw bright star glow halo
-				if (star.isBright) {
+				// Draw bright star glow halo — skip on mobile to reduce draw calls
+				if (star.isBright && !isMobile) {
 					ctx.beginPath();
 					ctx.arc(star.x, star.y, star.size * 3, 0, Math.PI * 2);
 					const glowColor = star.hue > 0
@@ -155,7 +168,7 @@
 				ctx.fill();
 			}
 
-			// Draw shooting stars
+			// Draw shooting stars (desktop only)
 			for (let i = shootingStars.length - 1; i >= 0; i--) {
 				const ss = shootingStars[i];
 				ss.trail.push({ x: ss.x, y: ss.y });

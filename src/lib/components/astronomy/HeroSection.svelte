@@ -14,6 +14,9 @@
 	let parallaxY = $state(0);
 	let reducedMotion = $state(false);
 	let mounted = $state(false);
+	let animDone = $state(false);
+	let heroVisible = $state(true);
+	let heroSection: HTMLElement | undefined = $state();
 
 	// Coordinate readout state
 	let raH = $state(14);
@@ -33,6 +36,24 @@
 		return () => mq.removeEventListener('change', handler);
 	});
 
+	// Release per-letter will-change GPU layers after entrance animation
+	$effect(() => {
+		if (!browser || !mounted) return;
+		const timer = setTimeout(() => { animDone = true; }, 2500);
+		return () => clearTimeout(timer);
+	});
+
+	// Pause animations when hero scrolls offscreen
+	$effect(() => {
+		if (!browser || !heroSection) return;
+		const observer = new IntersectionObserver(
+			([entry]) => { heroVisible = entry.isIntersecting; },
+			{ threshold: 0 }
+		);
+		observer.observe(heroSection);
+		return () => observer.disconnect();
+	});
+
 	$effect(() => {
 		if (!browser || reducedMotion) return;
 		if (window.innerWidth < 768) return;
@@ -44,9 +65,9 @@
 		return () => window.removeEventListener('scroll', onScroll);
 	});
 
-	// Incrementing coordinate readout
+	// Incrementing coordinate readout — gated on visibility
 	$effect(() => {
-		if (!browser || reducedMotion) return;
+		if (!browser || reducedMotion || !heroVisible) return;
 
 		const interval = setInterval(() => {
 			raM = (raM + 1) % 60;
@@ -60,7 +81,7 @@
 	});
 </script>
 
-<section class="relative h-dvh w-full overflow-hidden bg-[#080510]">
+<section bind:this={heroSection} class="relative h-dvh w-full overflow-hidden bg-[#080510]" class:offscreen={!heroVisible}>
 	<!-- Layer 1: Vivid nebula — warm oranges, deep purples, magentas, cosmic dust -->
 	<div class="absolute inset-0 nebula-bg"></div>
 
@@ -88,7 +109,7 @@
 	<div class="absolute inset-0 grid-overlay pointer-events-none opacity-40"></div>
 
 	<!-- Layer 5b: Additional fine coordinate grid lines -->
-	<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-[0.06]" aria-hidden="true">
+	<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-[0.06] hidden md:block" aria-hidden="true">
 		<!-- Horizontal guide lines -->
 		{#each [20, 35, 50, 65, 80] as y}
 			<line x1="0%" y1="{y}%" x2="100%" y2="{y}%" stroke="white" stroke-width="0.3" stroke-dasharray="3 12" />
@@ -103,7 +124,7 @@
 	<AmbientParticles count={60} color="rgba(255,240,220,0.3)" speed={0.08} />
 
 	<!-- Layer 7: Constellation patterns -->
-	<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-80" aria-hidden="true">
+	<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-80 hidden md:block" aria-hidden="true">
 		<!-- Orion (right mid area — visible against dark regions) -->
 		<g class="constellation-group" style="animation-delay: 0s;">
 			<circle cx="72%" cy="30%" r="2.5" fill="rgba(255,255,255,0.5)" />
@@ -390,7 +411,7 @@
 					style="font-size: clamp(3.5rem, 10vw, 8rem); line-height: 0.95;"
 				>
 					{#each heroTitle.split('') as char, i}
-						<span class="hero-letter hero-text-inner" class:mounted style="transition-delay: {300 + i * 40}ms">{char === ' ' ? '\u00A0' : char}</span>
+						<span class="hero-letter hero-text-inner" class:mounted class:anim-done={animDone} style="transition-delay: {300 + i * 40}ms">{char === ' ' ? '\u00A0' : char}</span>
 					{/each}
 				</span>
 			{:else}
@@ -400,7 +421,7 @@
 					style="font-size: clamp(4.5rem, 13vw, 11rem); line-height: 0.9;"
 				>
 					{#each 'OBSERVE'.split('') as char, i}
-						<span class="hero-letter hero-text-inner" class:mounted style="transition-delay: {300 + i * 40}ms">{char}</span>
+						<span class="hero-letter hero-text-inner" class:mounted class:anim-done={animDone} style="transition-delay: {300 + i * 40}ms">{char}</span>
 					{/each}
 				</span>
 				<span
@@ -1034,7 +1055,39 @@
 		mix-blend-mode: overlay;
 	}
 
-	/* Mobile adjustments */
+	/* Release per-letter GPU layers after entrance animation */
+	.hero-letter.anim-done {
+		will-change: auto;
+	}
+
+	/* Pause all animations when hero section is offscreen */
+	section.offscreen .planet-glow-1,
+	section.offscreen .planet-glow-2,
+	section.offscreen .planet-glow-3,
+	section.offscreen .nebula-cloud-core,
+	section.offscreen .nebula-cloud-haze,
+	section.offscreen .nebula-cloud-wisp,
+	section.offscreen .viewfinder-ring-outer,
+	section.offscreen .radar-line,
+	section.offscreen .center-pulse,
+	section.offscreen .crosshair-anim {
+		animation-play-state: paused !important;
+	}
+
+	section.offscreen :global(.constellation-group),
+	section.offscreen :global(.viewfinder-ring-inner) {
+		animation-play-state: paused !important;
+	}
+
+	section.offscreen .cta-scan-line::after {
+		animation-play-state: paused;
+	}
+
+	/* ================================================================
+	   MOBILE PERFORMANCE OVERRIDES
+	   Surgical reductions to prevent Safari crash while keeping
+	   the space aesthetic intact.
+	   ================================================================ */
 	@media (max-width: 768px) {
 		.planetary-body {
 			width: 320px;
@@ -1043,14 +1096,91 @@
 			right: -15%;
 		}
 
-		.nebula-cloud-core {
-			filter: blur(20px);
-			opacity: 0.7;
+		/* Kill blur filters — radial gradients already look soft */
+		.planet-core {
+			filter: none;
 		}
 
-		.nebula-cloud-haze,
-		.nebula-cloud-wisp {
+		.planet-glow-1,
+		.planet-glow-2,
+		.planet-glow-3 {
+			filter: none;
+			animation: none;
+		}
+
+		/* Hide nebula cloud overlay entirely — removes 4 blur layers */
+		.nebula-cloud-overlay {
 			display: none;
+		}
+
+		/* Simplify hero text — replace triple drop-shadow with text-shadow */
+		.hero-text-inner {
+			filter: none;
+			text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+		}
+
+		/* Hide the blur(50px) glow behind title */
+		.hero-observe::after {
+			display: none;
+		}
+
+		/* Hide crosshairs — tiny "+" symbols invisible on mobile */
+		.crosshair-anim {
+			display: none;
+		}
+
+		/* Reduce nebula-bg from 13 to 5 key gradients */
+		.nebula-bg {
+			background:
+				/* Bright blue/teal nebula core */
+				radial-gradient(ellipse 95% 85% at 55% 40%,
+					rgba(30,160,240,0.85) 0%,
+					rgba(40,120,220,0.65) 12%,
+					rgba(25,90,190,0.45) 25%,
+					rgba(20,60,150,0.3) 40%,
+					transparent 75%),
+				/* Intense orange/amber nebula */
+				radial-gradient(ellipse 75% 70% at 15% 20%,
+					rgba(255,170,60,0.95) 0%,
+					rgba(255,130,40,0.85) 12%,
+					rgba(240,90,50,0.7) 25%,
+					rgba(210,60,65,0.5) 40%,
+					transparent 70%),
+				/* Deep purple mass */
+				radial-gradient(ellipse 100% 90% at 42% 40%,
+					rgba(120,40,180,0.7) 0%,
+					rgba(90,25,150,0.5) 25%,
+					rgba(60,18,110,0.45) 45%,
+					transparent 80%),
+				/* Teal glow near planetary body */
+				radial-gradient(ellipse 45% 55% at 72% 40%,
+					rgba(40,220,255,0.45) 0%,
+					rgba(25,150,200,0.3) 30%,
+					transparent 60%),
+				/* Cosmic base */
+				linear-gradient(to bottom,
+					#10081e 0%,
+					#140c30 18%,
+					#110a28 35%,
+					#0d0920 55%,
+					#090616 100%);
+		}
+
+		/* Reduce star-scatter from 39 to 12 key points */
+		.star-scatter {
+			background-image:
+				radial-gradient(1.5px 1.5px at 10% 15%, rgba(255,255,255,0.9), transparent),
+				radial-gradient(2px 2px at 45% 12%, rgba(255,255,255,1), transparent),
+				radial-gradient(1.5px 1.5px at 82% 18%, rgba(255,255,255,0.8), transparent),
+				radial-gradient(2px 2px at 90% 25%, rgba(255,255,255,0.7), transparent),
+				radial-gradient(1.5px 1.5px at 35% 62%, rgba(255,255,255,0.7), transparent),
+				radial-gradient(2px 2px at 75% 58%, rgba(255,255,255,0.8), transparent),
+				radial-gradient(1.5px 1.5px at 30% 85%, rgba(255,255,255,0.5), transparent),
+				radial-gradient(1px 1px at 65% 78%, rgba(255,255,255,0.7), transparent),
+				radial-gradient(2.5px 2.5px at 50% 5%, rgba(255,225,180,1), transparent),
+				radial-gradient(2.5px 2.5px at 20% 35%, rgba(200,225,255,0.9), transparent),
+				radial-gradient(2.5px 2.5px at 85% 42%, rgba(255,210,150,0.8), transparent),
+				radial-gradient(3px 3px at 72% 15%, rgba(255,240,200,0.8), transparent);
 		}
 	}
 </style>

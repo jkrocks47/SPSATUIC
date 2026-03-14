@@ -47,10 +47,16 @@
 }
 
 @media (max-width: 768px) {
-	.glass-panel,
+	.glass-panel {
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+		background: rgba(13, 27, 42, 0.85);
+	}
+
 	.glass-panel-light {
-		-webkit-backdrop-filter: blur(8px) saturate(150%);
-		backdrop-filter: blur(8px) saturate(150%);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+		background: rgba(245, 240, 232, 0.88);
 	}
 }
 
@@ -147,8 +153,9 @@
 
 @media (max-width: 768px) {
 	.frosted-nav {
-		-webkit-backdrop-filter: blur(8px);
-		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+		background: rgba(10, 10, 15, 0.92);
 	}
 }
 

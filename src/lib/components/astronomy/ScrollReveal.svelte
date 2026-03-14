@@ -74,6 +74,7 @@
 	.scroll-reveal.revealed {
 		opacity: 1;
 		transform: translateY(0);
+		will-change: auto;
 	}
 
 	@media (prefers-reduced-motion: reduce) {
