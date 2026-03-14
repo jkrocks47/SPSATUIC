@@ -17,9 +17,14 @@
 		historicalRate: number | null;
 		clubType: 'astronomy' | 'physics';
 		backHref: string;
+		announcementRecipientCount: number;
+		announcementAlreadySent: boolean;
 	}
 
-	let { event, rsvpList, stats, historicalRate, clubType, backHref }: Props = $props();
+	let { event, rsvpList, stats, historicalRate, clubType, backHref, announcementRecipientCount, announcementAlreadySent }: Props = $props();
+
+	let announcementSending = $state(false);
+	let announcementResult = $state<{ success?: boolean; sentCount?: number; error?: string } | null>(null);
 
 	let statusFilter = $state<string>('all');
 	let sortBy = $state<'name' | 'status' | 'reliability'>('name');
@@ -133,6 +138,63 @@
 			Historical turnout rate for {clubLabel} events: <strong>{historicalRate}%</strong>
 		</div>
 	{/if}
+
+	<!-- Announcement Section -->
+	<div class="announcement-card">
+		<div class="announcement-header">
+			<h2>Email Announcement</h2>
+			{#if announcementAlreadySent}
+				<span class="sent-badge">Sent</span>
+			{/if}
+		</div>
+
+		{#if announcementResult?.success}
+			<p class="announcement-success">Announcement sent to {announcementResult.sentCount} member{announcementResult.sentCount !== 1 ? 's' : ''}.</p>
+		{/if}
+
+		{#if announcementResult?.error}
+			<p class="announcement-error">{announcementResult.error}</p>
+		{/if}
+
+		<p class="announcement-info">
+			{#if announcementRecipientCount > 0}
+				Send announcement to <strong>{announcementRecipientCount}</strong> verified {clubLabel} member{announcementRecipientCount !== 1 ? 's' : ''}.
+			{:else}
+				All eligible members have already been notified.
+			{/if}
+		</p>
+
+		{#if announcementRecipientCount > 0}
+			<form method="POST" action="?/sendAnnouncement" use:enhance={() => {
+				announcementSending = true;
+				announcementResult = null;
+				return async ({ result, update }) => {
+					announcementSending = false;
+					if (result.type === 'success') {
+						announcementResult = { success: true, sentCount: result.data?.sentCount };
+					} else if (result.type === 'failure') {
+						announcementResult = { error: result.data?.error as string };
+					}
+					await update({ reset: false });
+				};
+			}}>
+				<button
+					type="submit"
+					class="announce-btn"
+					disabled={announcementSending}
+					onclick={(e) => {
+						if (!confirm(`Send announcement email to ${announcementRecipientCount} members?`)) e.preventDefault();
+					}}
+				>
+					{#if announcementSending}
+						Sending...
+					{:else}
+						{announcementAlreadySent ? 'Send to New Members' : 'Send Announcement'}
+					{/if}
+				</button>
+			</form>
+		{/if}
+	</div>
 
 	<!-- RSVP List -->
 	<div class="table-card">
@@ -288,6 +350,83 @@
 	}
 
 	.historical-rate strong { color: #4f46e5; }
+
+	/* Announcement */
+	.announcement-card {
+		background: #fff;
+		border: 1px solid #e5e7eb;
+		border-radius: 0.5rem;
+		padding: 1rem 1.25rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.announcement-header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.announcement-header h2 {
+		font-size: 1rem;
+		font-weight: 600;
+		color: #374151;
+		margin: 0;
+	}
+
+	.sent-badge {
+		display: inline-block;
+		padding: 0.1rem 0.5rem;
+		border-radius: 9999px;
+		font-size: 0.7rem;
+		font-weight: 500;
+		background: #dcfce7;
+		color: #16a34a;
+	}
+
+	.announcement-info {
+		font-size: 0.85rem;
+		color: #6b7280;
+		margin-bottom: 0.75rem;
+	}
+
+	.announcement-info strong {
+		color: #374151;
+	}
+
+	.announcement-success {
+		font-size: 0.85rem;
+		color: #16a34a;
+		background: #f0fdf4;
+		border: 1px solid #bbf7d0;
+		padding: 0.5rem 0.75rem;
+		border-radius: 0.375rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.announcement-error {
+		font-size: 0.85rem;
+		color: #dc2626;
+		background: #fef2f2;
+		border: 1px solid #fecaca;
+		padding: 0.5rem 0.75rem;
+		border-radius: 0.375rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.announce-btn {
+		padding: 0.45rem 1rem;
+		background: #7c3aed;
+		color: #fff;
+		border: none;
+		border-radius: 0.375rem;
+		font-size: 0.8rem;
+		font-weight: 500;
+		cursor: pointer;
+	}
+
+	.announce-btn:hover { background: #6d28d9; }
+	.announce-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 	/* Table */
 	.table-card {

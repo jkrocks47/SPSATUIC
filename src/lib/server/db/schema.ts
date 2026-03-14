@@ -49,6 +49,8 @@ export const members = pgTable('members', {
 	eventPreferences: jsonb('event_preferences').$type<string[]>(),
 	preferencesReviewedAt: timestamp('preferences_reviewed_at'),
 	preferenceReminderSentAt: timestamp('preference_reminder_sent_at'),
+	emailOptOut: boolean('email_opt_out').notNull().default(false),
+	unsubscribeToken: text('unsubscribe_token').notNull().unique(),
 	secondaryEmail: text('secondary_email'),
 	profileImageUrl: text('profile_image_url'),
 	createdAt: timestamp('created_at').defaultNow(),
@@ -99,10 +101,26 @@ export const events = pgTable('events', {
 	isPublished: boolean('is_published').default(true),
 	maxAttendees: integer('max_attendees'),
 	checkinCode: text('checkin_code').unique(),
+	announcementSentAt: timestamp('announcement_sent_at'),
 	createdBy: uuid('created_by').references(() => members.id),
 	createdAt: timestamp('created_at').defaultNow(),
 	updatedAt: timestamp('updated_at').defaultNow()
 });
+
+export const eventAnnouncementLogs = pgTable(
+	'event_announcement_logs',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		eventId: uuid('event_id')
+			.notNull()
+			.references(() => events.id, { onDelete: 'cascade' }),
+		memberId: uuid('member_id')
+			.notNull()
+			.references(() => members.id, { onDelete: 'cascade' }),
+		sentAt: timestamp('sent_at').notNull().defaultNow()
+	},
+	(t) => [unique().on(t.eventId, t.memberId)]
+);
 
 export const eventRsvps = pgTable(
 	'event_rsvps',

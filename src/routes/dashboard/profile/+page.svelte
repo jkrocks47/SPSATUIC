@@ -92,6 +92,17 @@
 				</div>
 			</div>
 
+			<div class="form-group">
+				<label>Email Preferences</label>
+				<div class="checkbox-row">
+					<label class="checkbox-label">
+						<input type="checkbox" name="emailOptOut" checked={data.profile.emailOptOut} />
+						Opt out of event reminders and announcements
+					</label>
+				</div>
+				<span class="hint">Account emails (verification, password reset) will always be sent.</span>
+			</div>
+
 			<button type="submit" class="submit-btn">Save Changes</button>
 		</form>
 	</div>

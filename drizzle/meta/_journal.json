@@ -71,6 +71,13 @@
       "when": 1773516700741,
       "tag": "0009_gifted_black_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1773523285617,
+      "tag": "0010_yummy_jasper_sitwell",
+      "breakpoints": true
     }
   ]
 }

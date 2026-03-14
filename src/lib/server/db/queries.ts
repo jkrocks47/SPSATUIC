@@ -1,6 +1,6 @@
 import { eq, and, sql, inArray, desc } from 'drizzle-orm';
 import { db } from './index';
-import { officers, events, eventRsvps, eventCheckins, members } from './schema';
+import { officers, events, eventRsvps, eventCheckins, members, eventAnnouncementLogs } from './schema';
 import { CONTACT_EMAILS } from '$lib/utils/constants';
 import type { ClubType } from '$lib/utils/constants';
 
@@ -335,4 +335,59 @@ export async function getMembershipStats(): Promise<MembershipStats> {
 		physicsMembers: r.physicsMembers,
 		membersWithPreferences: r.membersWithPreferences
 	};
+}
+
+// --- Event Announcement Queries ---
+
+export async function getAnnouncementRecipients(
+	eventId: string,
+	clubType: ClubType
+): Promise<{ id: string; email: string; firstName: string; unsubscribeToken: string }[]> {
+	const clubColumn = clubType === 'astronomy' ? members.astronomyMember : members.physicsMember;
+
+	return db
+		.select({
+			id: members.id,
+			email: members.email,
+			firstName: members.firstName,
+			unsubscribeToken: members.unsubscribeToken
+		})
+		.from(members)
+		.where(
+			and(
+				eq(clubColumn, true),
+				eq(members.emailVerified, true),
+				eq(members.emailOptOut, false),
+				sql`NOT EXISTS (
+					SELECT 1 FROM event_announcement_logs eal
+					WHERE eal.event_id = ${eventId}
+						AND eal.member_id = ${members.id}
+				)`
+			)
+		);
+}
+
+export async function getAnnouncementRecipientCount(
+	eventId: string,
+	clubType: ClubType
+): Promise<number> {
+	const clubColumn = clubType === 'astronomy' ? members.astronomyMember : members.physicsMember;
+
+	const result = await db
+		.select({ count: sql<number>`count(*)::int` })
+		.from(members)
+		.where(
+			and(
+				eq(clubColumn, true),
+				eq(members.emailVerified, true),
+				eq(members.emailOptOut, false),
+				sql`NOT EXISTS (
+					SELECT 1 FROM event_announcement_logs eal
+					WHERE eal.event_id = ${eventId}
+						AND eal.member_id = ${members.id}
+				)`
+			)
+		);
+
+	return result[0]?.count ?? 0;
 }

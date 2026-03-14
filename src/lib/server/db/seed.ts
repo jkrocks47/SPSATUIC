@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { hashPassword } from '../auth';
@@ -28,7 +29,8 @@ async function seed() {
 			displayName: 'Admin',
 			role: 'member',
 			adminRole: 'super_admin',
-			emailVerified: true
+			emailVerified: true,
+			unsubscribeToken: randomBytes(32).toString('hex')
 		})
 		.onConflictDoNothing();
 

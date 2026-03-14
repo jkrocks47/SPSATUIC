@@ -418,7 +418,7 @@
 				<span
 					class="hero-observe relative block"
 					class:mounted
-					style="font-size: clamp(4.5rem, 13vw, 11rem); line-height: 0.9;"
+					style="font-size: clamp(3rem, 13vw, 11rem); line-height: 0.9;"
 				>
 					{#each 'OBSERVE'.split('') as char, i}
 						<span class="hero-letter hero-text-inner" class:mounted class:anim-done={animDone} style="transition-delay: {300 + i * 40}ms">{char}</span>
@@ -427,7 +427,7 @@
 				<span
 					class="hero-cosmos block"
 					class:mounted
-					style="font-size: clamp(3.5rem, 9.5vw, 8rem); line-height: 0.95;"
+					style="font-size: clamp(2.5rem, 9.5vw, 8rem); line-height: 0.95;"
 				>
 					{#each 'THE COSMOS'.split('') as char, i}
 						<span class="hero-letter hero-text-inner" class:mounted style="transition-delay: {500 + i * 35}ms">{char === ' ' ? '\u00A0' : char}</span>

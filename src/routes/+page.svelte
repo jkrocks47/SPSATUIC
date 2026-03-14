@@ -554,6 +554,7 @@
 		.officers-grid { grid-template-columns: repeat(2, 1fr); }
 		.contact-bar { flex-direction: column; align-items: flex-start; }
 		.stats-strip { flex-wrap: wrap; gap: 0.4rem; font-size: 0.5rem; }
+		.login-link { font-size: 0.55rem; padding: 0.35rem 0.75rem; white-space: nowrap; }
 	}
 
 	@media (prefers-reduced-motion: reduce) {

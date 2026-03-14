@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
+	import { browser } from '$app/environment';
 
 	let { children } = $props();
 
-	let sidebarOpen = $state(true);
+	let isMobile = $state(false);
+	let sidebarOpen = $state(false);
 	let currentPath = $derived($page.url.pathname);
 	let member = $derived($page.data.member);
 
@@ -13,9 +15,46 @@
 		{ href: '/dashboard/events', label: 'My Events', icon: '&#9733;' },
 		{ href: '/dashboard/profile', label: 'Profile', icon: '&#9881;' }
 	];
+
+	$effect(() => {
+		if (!browser) return;
+		const mql = window.matchMedia('(max-width: 768px)');
+		isMobile = mql.matches;
+		if (!mql.matches) sidebarOpen = true;
+
+		const handler = (e: MediaQueryListEvent) => {
+			isMobile = e.matches;
+			if (e.matches) sidebarOpen = false;
+		};
+		mql.addEventListener('change', handler);
+		return () => mql.removeEventListener('change', handler);
+	});
+
+	$effect(() => {
+		if (!browser) return;
+		document.body.style.overflow = (isMobile && sidebarOpen) ? 'hidden' : '';
+	});
+
+	function handleNavClick() {
+		if (isMobile) sidebarOpen = false;
+	}
 </script>
 
+<svelte:window onkeydown={(e) => {
+	if (e.key === 'Escape' && isMobile && sidebarOpen) sidebarOpen = false;
+}} />
+
 <div class="dashboard-layout">
+	{#if isMobile && sidebarOpen}
+		<div
+			class="sidebar-backdrop"
+			onclick={() => sidebarOpen = false}
+			role="button"
+			tabindex="-1"
+			aria-label="Close sidebar"
+		></div>
+	{/if}
+
 	<aside class="sidebar" class:collapsed={!sidebarOpen}>
 		<div class="sidebar-header">
 			<a href="/" class="sidebar-logo">
@@ -26,7 +65,7 @@
 
 		<nav class="sidebar-nav">
 			{#each navLinks as link}
-				<a href={link.href} class="nav-item" class:active={currentPath === link.href}>
+				<a href={link.href} class="nav-item" class:active={currentPath === link.href} onclick={handleNavClick}>
 					<span class="nav-icon">{@html link.icon}</span>
 					{link.label}
 				</a>
@@ -62,20 +101,26 @@
 		background: #0a0a0f;
 	}
 
+	.sidebar-backdrop {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.5);
+		z-index: 40;
+	}
+
 	.sidebar {
 		width: 240px;
 		background: #191923;
 		display: flex;
 		flex-direction: column;
 		flex-shrink: 0;
-		transition: width 0.3s ease, transform 0.3s ease;
+		transition: width 0.3s ease;
 		overflow: hidden;
 		border-right: 1px solid rgba(255, 255, 255, 0.06);
 	}
 
 	.sidebar.collapsed {
 		width: 0;
-		transform: translateX(-240px);
 	}
 
 	.sidebar-header {
@@ -222,8 +267,35 @@
 	@media (max-width: 768px) {
 		.sidebar {
 			position: fixed;
+			top: 0;
+			left: 0;
 			z-index: 50;
 			height: 100vh;
+			width: 240px;
+			transition: transform 0.3s ease;
+		}
+
+		.sidebar.collapsed {
+			width: 240px;
+			transform: translateX(-100%);
+		}
+	}
+
+	@media (max-width: 480px) {
+		.user-name {
+			display: none;
+		}
+
+		.top-bar-right {
+			gap: 0.4rem;
+		}
+
+		.top-bar {
+			padding: 0.75rem 0.75rem;
+		}
+
+		.content {
+			padding: 1rem;
 		}
 	}
 </style>

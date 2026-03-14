@@ -69,6 +69,7 @@ interface PendingReminder {
 	memberEmail: string;
 	memberFirstName: string;
 	rsvpStatus: string;
+	unsubscribeToken: string;
 }
 
 async function sendRemindersForDate(
@@ -86,7 +87,8 @@ async function sendRemindersForDate(
 			memberId: members.id,
 			memberEmail: members.email,
 			memberFirstName: members.firstName,
-			rsvpStatus: eventRsvps.status
+			rsvpStatus: eventRsvps.status,
+			unsubscribeToken: members.unsubscribeToken
 		})
 		.from(eventRsvps)
 		.innerJoin(events, eq(eventRsvps.eventId, events.id))
@@ -96,6 +98,7 @@ async function sendRemindersForDate(
 				eq(events.date, targetDate),
 				eq(events.isPublished, true),
 				eq(members.emailVerified, true),
+				eq(members.emailOptOut, false),
 				sql`${eventRsvps.status} IN ('going', 'maybe')`,
 				sql`NOT EXISTS (
 					SELECT 1 FROM reminder_logs rl
@@ -123,10 +126,17 @@ async function sendRemindersForDate(
 					? `Reminder: ${reminder.eventTitle} is in one week`
 					: `Tomorrow: ${reminder.eventTitle}`;
 
+			const baseUrl = env.PUBLIC_BASE_URL || 'http://localhost:5173';
+			const unsubscribeUrl = `${baseUrl}/unsubscribe?token=${reminder.unsubscribeToken}`;
+
 			await resend.emails.send({
 				from: FROM_EMAIL,
 				to: reminder.memberEmail,
 				subject: `[${SITE_NAME}] ${subject}`,
+				headers: {
+					'List-Unsubscribe': `<${unsubscribeUrl}>`,
+					'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+				},
 				html
 			});
 
@@ -159,12 +169,14 @@ async function sendPreferenceReviewReminders(): Promise<void> {
 		.select({
 			id: members.id,
 			email: members.email,
-			firstName: members.firstName
+			firstName: members.firstName,
+			unsubscribeToken: members.unsubscribeToken
 		})
 		.from(members)
 		.where(
 			and(
 				eq(members.emailVerified, true),
+				eq(members.emailOptOut, false),
 				sql`(${members.preferencesReviewedAt} IS NULL OR ${members.preferencesReviewedAt} < NOW() - INTERVAL '4 months')`,
 				sql`(${members.preferenceReminderSentAt} IS NULL OR ${members.preferenceReminderSentAt} < NOW() - INTERVAL '4 months')`
 			)
@@ -178,7 +190,7 @@ async function sendPreferenceReviewReminders(): Promise<void> {
 
 	for (const member of staleMembers) {
 		try {
-			await sendPreferenceReviewEmail(member.email, member.firstName);
+			await sendPreferenceReviewEmail(member.email, member.firstName, member.unsubscribeToken);
 
 			await db
 				.update(members)
@@ -241,6 +253,11 @@ function buildReminderEmail(
     </div>
     <a href="${baseUrl}/dashboard/events" style="display: inline-block; background: #4f46e5; color: #fff; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 500; margin: 1rem 0;">${ctaText}</a>
     <p style="font-size: 0.85rem; color: #9ca3af;">You're receiving this because you RSVP'd to this event on ${SITE_NAME}.</p>
+    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.06);">
+      <p style="font-size: 0.75rem; color: #6b7280; margin: 0;">
+        Don't want to receive these emails? <a href="${baseUrl}/unsubscribe?token=${data.unsubscribeToken}" style="color: #818cf8; text-decoration: none;">Unsubscribe</a>
+      </p>
+    </div>
   </div>
 </body>
 </html>`;

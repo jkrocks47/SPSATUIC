@@ -15,4 +15,6 @@
 	historicalRate={data.historicalRate}
 	clubType="physics"
 	backHref="/admin/physics/events"
+	announcementRecipientCount={data.announcementRecipientCount}
+	announcementAlreadySent={data.announcementAlreadySent}
 />

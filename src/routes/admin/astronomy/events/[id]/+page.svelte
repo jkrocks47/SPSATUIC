@@ -15,4 +15,6 @@
 	historicalRate={data.historicalRate}
 	clubType="astronomy"
 	backHref="/admin/astronomy/events"
+	announcementRecipientCount={data.announcementRecipientCount}
+	announcementAlreadySent={data.announcementAlreadySent}
 />

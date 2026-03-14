@@ -50,7 +50,8 @@ export const profileUpdateSchema = z.object({
 	major: z.string().max(200).optional(),
 	astronomyMember: z.boolean().default(false),
 	physicsMember: z.boolean().default(false),
-	eventPreferences: z.array(z.string()).optional()
+	eventPreferences: z.array(z.string()).optional(),
+	emailOptOut: z.boolean().default(false)
 });
 
 export const rsvpSchema = z.object({

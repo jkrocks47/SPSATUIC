@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 import { fail, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
@@ -79,7 +80,8 @@ export const actions: Actions = {
 				major: parsed.data.major || null,
 				astronomyMember: parsed.data.astronomyMember,
 				physicsMember: parsed.data.physicsMember,
-				eventPreferences: parsed.data.eventPreferences || []
+				eventPreferences: parsed.data.eventPreferences || [],
+			unsubscribeToken: randomBytes(32).toString('hex')
 			})
 			.returning({ id: members.id });
 

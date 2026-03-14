@@ -18,7 +18,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 			major: members.major,
 			astronomyMember: members.astronomyMember,
 			physicsMember: members.physicsMember,
-			eventPreferences: members.eventPreferences
+			eventPreferences: members.eventPreferences,
+			emailOptOut: members.emailOptOut
 		})
 		.from(members)
 		.where(eq(members.id, member.id))
@@ -40,7 +41,8 @@ export const actions: Actions = {
 			major: (formData.get('major') as string)?.trim() || undefined,
 			astronomyMember: formData.get('astronomyMember') === 'on',
 			physicsMember: formData.get('physicsMember') === 'on',
-			eventPreferences: formData.getAll('eventPreferences') as string[]
+			eventPreferences: formData.getAll('eventPreferences') as string[],
+			emailOptOut: formData.get('emailOptOut') === 'on'
 		};
 
 		const parsed = profileUpdateSchema.safeParse(data);
@@ -64,6 +66,7 @@ export const actions: Actions = {
 				astronomyMember: parsed.data.astronomyMember,
 				physicsMember: parsed.data.physicsMember,
 				eventPreferences: parsed.data.eventPreferences || [],
+				emailOptOut: parsed.data.emailOptOut ?? false,
 				preferencesReviewedAt: new Date(),
 				updatedAt: new Date()
 			})
