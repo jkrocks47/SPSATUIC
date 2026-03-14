@@ -13,6 +13,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			firstName: members.firstName,
 			lastName: members.lastName,
 			email: members.email,
+			secondaryEmail: members.secondaryEmail,
 			year: members.year,
 			major: members.major,
 			astronomyMember: members.astronomyMember,
@@ -34,6 +35,7 @@ export const actions: Actions = {
 		const data = {
 			firstName: (formData.get('firstName') as string)?.trim(),
 			lastName: (formData.get('lastName') as string)?.trim(),
+			secondaryEmail: (formData.get('secondaryEmail') as string)?.trim() || undefined,
 			year: (formData.get('year') as string) || undefined,
 			major: (formData.get('major') as string)?.trim() || undefined,
 			astronomyMember: formData.get('astronomyMember') === 'on',
@@ -56,6 +58,7 @@ export const actions: Actions = {
 				firstName: parsed.data.firstName,
 				lastName: parsed.data.lastName,
 				displayName: `${parsed.data.firstName} ${parsed.data.lastName}`,
+				secondaryEmail: parsed.data.secondaryEmail || null,
 				year: parsed.data.year || null,
 				major: parsed.data.major || null,
 				astronomyMember: parsed.data.astronomyMember,

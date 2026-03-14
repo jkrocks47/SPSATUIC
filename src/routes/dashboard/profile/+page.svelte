@@ -44,6 +44,12 @@
 				<span class="hint">Email cannot be changed</span>
 			</div>
 
+			<div class="form-group">
+				<label for="secondaryEmail">Secondary Email</label>
+				<input type="email" id="secondaryEmail" name="secondaryEmail" value={data.profile.secondaryEmail ?? ''} placeholder="Optional personal email" />
+				<span class="hint">An optional non-UIC email for backup contact</span>
+			</div>
+
 			<div class="form-row">
 				<div class="form-group">
 					<label for="year">Year</label>

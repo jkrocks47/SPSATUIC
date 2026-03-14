@@ -45,6 +45,23 @@
 					</select>
 				</form>
 			</div>
+			<div>
+				<span class="label">Admin Role</span>
+				{#if data.currentUserRole === 'super_admin'}
+					<form method="POST" action="?/updateAdminRole" use:enhance class="inline-form">
+						<select name="adminRole" onchange={(e) => e.currentTarget.form?.requestSubmit()} class="role-select">
+							<option value="" selected={!member.adminRole}>None</option>
+							<option value="super_admin" selected={member.adminRole === 'super_admin'}>Super Admin</option>
+							<option value="astronomy_admin" selected={member.adminRole === 'astronomy_admin'}>Astronomy Admin</option>
+							<option value="physics_admin" selected={member.adminRole === 'physics_admin'}>Physics Admin</option>
+						</select>
+					</form>
+				{:else if member.adminRole}
+					<span class="admin-badge">{member.adminRole.replace('_', ' ')}</span>
+				{:else}
+					<span class="value">--</span>
+				{/if}
+			</div>
 		</div>
 	</div>
 
@@ -139,4 +156,6 @@
 	.rsvp-badge.going { background: #dcfce7; color: #16a34a; }
 	.rsvp-badge.maybe { background: #fef3c7; color: #d97706; }
 	.rsvp-badge.not-going { background: #fef2f2; color: #dc2626; }
+
+	.admin-badge { font-size: 0.75rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 9999px; background: #fef3c7; color: #d97706; text-transform: capitalize; }
 </style>

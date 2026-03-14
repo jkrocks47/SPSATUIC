@@ -10,6 +10,7 @@ Built with SvelteKit 5, TypeScript, Tailwind CSS, PostgreSQL, and Drizzle ORM.
 
 - [Overview](#overview)
 - [Features](#features)
+- [Site Features Guide](#site-features-guide)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
@@ -79,6 +80,139 @@ UICSpacetime is a full-stack web application designed for two university science
 - **Physics theme**: Clean, bright design with geometric elements, atomic nucleus visualization, and minimal animations
 - **Responsive design** with mobile-first approach and reduced motion support
 - **Canvas-based animations** with intersection observer performance optimization
+
+---
+
+## Site Features Guide
+
+### For Visitors (No Account Needed)
+
+#### Landing Page (`/`)
+The main entry point to the site. Features animated portal cards for both the Astronomy and Physics clubs, a shared event calendar showing upcoming events from both clubs, SPS mission and officer information, and contact links. Click a club portal card to enter that club's section of the site.
+
+#### Astronomy Club Pages (`/astronomy/...`)
+A dark, cosmic-themed section for the Astronomy Club with immersive visual effects (starfields, nebula backgrounds, parallax scrolling, HUD overlays).
+
+- **Homepage** (`/astronomy`) — Overview of the club with a hero banner, announcement bar, event timeline, and gallery preview. Scroll down to explore upcoming events and recent photos.
+- **About** (`/astronomy/about`) — Learn about the club's mission, meeting schedule, current officers (with photos and bios), and history.
+- **Events** (`/astronomy/events`) — Browse all upcoming and past Astronomy events. Click any event to view full details including date, time, location, and description.
+- **Gallery** (`/astronomy/gallery`) — View club photos in a masonry layout. Click any image to open a lightbox with the full-size photo, caption, photographer credit, and astronomical metadata (coordinates, exposure time, equipment used).
+- **Board** (`/astronomy/board`) — Meet the current board members with their photos, positions, bios, and contact emails.
+- **Contact** (`/astronomy/contact`) — Reach out to the club via the contact form.
+- **Join** (`/astronomy/join`) — Information on how to become a member of the Astronomy Club.
+
+#### Physics Club Pages (`/physics/...`)
+A clean, light-themed section for the Physics Club with a bright design, geometric elements, and atomic visualizations. The page structure mirrors the Astronomy section:
+
+- **Homepage** (`/physics`) — Club overview with hero, events preview grid, gallery preview, and about snippet.
+- **About** (`/physics/about`) — Club mission, meetings, officers, and history.
+- **Events** (`/physics/events`) — Browse all Physics events. Click any event for full details.
+- **Gallery** (`/physics/gallery`) — View Physics club photos with lightbox.
+- **Board** (`/physics/board`) — Current board member profiles.
+- **Contact** (`/physics/contact`) — Contact form for the Physics Club.
+- **Join** (`/physics/join`) — Membership information.
+
+#### Shared Event Calendar
+Located on the landing page, the interactive calendar displays events from both clubs with color-coded dots. Use the filter pills (All / Astronomy / Physics) to narrow results. Click a date to see events on that day, then click an event to view its detail page.
+
+---
+
+### For Members (Requires Registration)
+
+#### Registration (`/register`)
+Create an account in three steps:
+1. Choose whether you are a new or returning member.
+2. Enter your name, `@uic.edu` email address, and a password (minimum 8 characters).
+3. Fill in your profile details — academic year, major, which clubs to join (Astronomy and/or Physics), and your event interest preferences (workshops, lectures, observing sessions, social events, etc.).
+
+After registering, you will receive a verification email. You must verify your email before you can RSVP to events.
+
+#### Email Verification (`/verify-email`)
+After registration, check your UIC email inbox for a verification link. Click the link to verify your account. The link expires after 24 hours — if it expires, you can request a new one from the verification page.
+
+#### Login & Password Reset
+- **Login** (`/login`) — Enter your email and password to sign in. You will stay logged in for 30 days.
+- **Forgot Password** (`/forgot-password`) — Enter your email to receive a password reset link. For security, a success message is always shown regardless of whether the email exists.
+- **Reset Password** (`/reset-password`) — Click the link in your reset email to set a new password. The link expires after 1 hour and can only be used once.
+
+#### Dashboard (`/dashboard`)
+Your personal hub after logging in. The dashboard shows:
+- A welcome greeting and quick links to your clubs.
+- **Stats cards** — your club memberships, total events attended, and active member progress.
+- **Upcoming RSVP'd events** — events you have RSVPed to, with the ability to change your RSVP status (going / maybe / not going) directly from the dashboard.
+- **Recent check-ins** — events you have physically attended via QR code check-in.
+
+If you haven't updated your preferences in a while, a review banner will appear prompting you to update.
+
+#### Profile Management (`/dashboard/profile`)
+Edit your personal information from the profile page:
+- Update your first name, last name, academic year, and major.
+- Manage your club memberships (check/uncheck Astronomy or Physics).
+- Update your event interest preferences to help the clubs plan events you care about.
+
+Click **Save** to apply your changes.
+
+#### Browsing & RSVPing to Events
+Navigate to any club's events page (`/astronomy/events` or `/physics/events`) and click an event to view its detail page. If you are logged in and your email is verified, you will see RSVP buttons at the bottom of the event detail. Choose **Going**, **Maybe**, or **Not Going** — your RSVP will appear on your dashboard. You can also manage RSVPs from `/dashboard/events`.
+
+#### Event Check-In (`/checkin/[eventId]`)
+At in-person events, scan the QR code provided at the venue with your phone. This will open the check-in page and automatically record your attendance. If you are not yet a member of the hosting club, you will be auto-enrolled. A confirmation message will show the event title and date.
+
+#### Gallery Viewing
+Visit the gallery on either club's page (`/astronomy/gallery` or `/physics/gallery`). Photos are displayed in a masonry grid. Click any image to open a full-screen lightbox showing the image at full resolution, along with the caption, photographer credit, and (for astronomy images) observation metadata like coordinates, exposure time, and equipment used. Close the lightbox by clicking outside the image or pressing Escape.
+
+---
+
+### For Admins
+
+#### Admin Login & Dashboard (`/admin`)
+Navigate to `/admin` and log in with your admin credentials. The admin dashboard shows:
+- **Membership statistics** — total members, per-club breakdown, and how many members have set preferences.
+- **Interest breakdown** — bar charts showing which event interests are most popular and how they split across clubs, with actionable insights (e.g., "plan more observing sessions").
+- Quick links to club-specific admin sections.
+
+Access is role-based: **Super Admins** can manage both clubs; **Astronomy Admins** and **Physics Admins** can only manage their respective club.
+
+#### Member Management (`/admin/members`)
+View all registered members in a searchable, filterable table:
+- **Search** by name or email.
+- **Filter** by club (Astronomy / Physics) or role (Board).
+- **Filter by interest** to see which members prefer specific event types.
+- **Promote/demote** members between "member" and "board" roles using the role dropdown.
+- **Export** the full member list as a CSV file.
+- Click a member's name to view their **detail page** (`/admin/members/[id]`), which shows their full RSVP history and event check-in records.
+
+#### Event Management (`/admin/astronomy/events` or `/admin/physics/events`)
+Create and manage events for your club:
+- **Create** — Fill in the title, description, date, time, location (with optional map URL), upload an event image, set max capacity, and choose to publish immediately or save as a draft.
+- **Edit** — Update any event detail. Toggle between draft and published state.
+- **View statistics** — See RSVP counts (going / maybe / not going) and check-in attendance for each event.
+- **Delete** — Remove an event (this also deletes the associated image from cloud storage).
+
+Each event automatically gets a 6-digit hex check-in code used to generate the QR code for in-person attendance.
+
+#### Gallery Management (`/admin/astronomy/gallery` or `/admin/physics/gallery`)
+Manage your club's photo gallery:
+- **Upload** — Select an image file, add a caption and photographer credit. For astronomy images, you can also add observation metadata (coordinates, exposure time, equipment, sensor settings, observation date).
+- **View** — See all gallery images with their metadata and dimensions.
+- **Delete** — Remove an image from both the database and cloud storage.
+
+#### Announcement Management (`/admin/announcements`)
+Create and manage announcements displayed on member dashboards and club pages:
+- **Create** — Set a title, body text, and target audience (both clubs, astronomy only, or physics only). Optionally set a publish date and expiration date.
+- **Pin/Unpin** — Toggle pin status to feature important announcements prominently at the top.
+- **Delete** — Remove outdated announcements.
+
+#### Officer Profile Management (`/admin/astronomy/officers` or `/admin/physics/officers`)
+Manage the officer profiles displayed on club About and Board pages:
+- **Create/Edit** — Set the officer's name, position, bio, email, upload a photo, assign an academic year, and set the display sort order.
+- Officers appear on the club's About page and Board page automatically.
+
+#### Page Content Editor (`/admin/astronomy/content` or `/admin/physics/content`)
+Edit the static text content on club pages without touching code:
+- Browse editable content sections by slug (e.g., `hero-title`, `hero-subtitle`, `about-subtitle`).
+- Edit the title and body of each section. Markdown is supported for rich formatting.
+- Adjust sort ordering to control how sections appear on the page.
 
 ---
 

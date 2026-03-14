@@ -45,6 +45,7 @@ export const memberLoginSchema = z.object({
 export const profileUpdateSchema = z.object({
 	firstName: z.string().min(1, 'First name is required').max(100),
 	lastName: z.string().min(1, 'Last name is required').max(100),
+	secondaryEmail: z.string().email('Invalid email address').max(254).optional().or(z.literal('')),
 	year: z.enum(['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate']).optional(),
 	major: z.string().max(200).optional(),
 	astronomyMember: z.boolean().default(false),

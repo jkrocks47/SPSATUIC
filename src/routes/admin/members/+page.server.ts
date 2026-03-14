@@ -2,9 +2,10 @@ import { fail } from '@sveltejs/kit';
 import { eq, desc, sql, ilike, or } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { members, eventCheckins } from '$lib/server/db/schema';
+import { ROLES } from '$lib/utils/constants';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ url, locals }) => {
 	const search = url.searchParams.get('search') || '';
 	const clubFilter = url.searchParams.get('club') || '';
 	const roleFilter = url.searchParams.get('role') || '';
@@ -60,7 +61,8 @@ export const load: PageServerLoad = async ({ url }) => {
 		clubFilter,
 		roleFilter,
 		interestFilter,
-		totalCount: allMembers.length
+		totalCount: allMembers.length,
+		currentUserRole: locals.member?.adminRole ?? null
 	};
 };
 
@@ -75,6 +77,36 @@ export const actions: Actions = {
 		}
 
 		await db.update(members).set({ role, updatedAt: new Date() }).where(eq(members.id, id));
+
+		return { success: true };
+	},
+
+	updateAdminRole: async ({ request, locals }) => {
+		if (locals.member?.adminRole !== 'super_admin') {
+			return fail(403, { error: 'Only super admins can manage admin roles.' });
+		}
+
+		const formData = await request.formData();
+		const id = formData.get('id') as string;
+		const adminRole = formData.get('adminRole') as string;
+
+		if (!id) {
+			return fail(400, { error: 'Invalid input.' });
+		}
+
+		if (adminRole && !ROLES.includes(adminRole as any)) {
+			return fail(400, { error: 'Invalid admin role.' });
+		}
+
+		// Prevent removing your own super_admin role
+		if (id === locals.member.id && adminRole !== 'super_admin') {
+			return fail(400, { error: 'You cannot remove your own super admin role.' });
+		}
+
+		await db
+			.update(members)
+			.set({ adminRole: adminRole || null, updatedAt: new Date() })
+			.where(eq(members.id, id));
 
 		return { success: true };
 	},

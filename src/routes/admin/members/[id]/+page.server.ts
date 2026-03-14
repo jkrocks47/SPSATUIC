@@ -2,9 +2,10 @@ import { error, fail } from '@sveltejs/kit';
 import { eq, desc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { members, eventCheckins, eventRsvps, events } from '$lib/server/db/schema';
+import { ROLES } from '$lib/utils/constants';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
 	const result = await db.select().from(members).where(eq(members.id, params.id)).limit(1);
 
 	if (result.length === 0) {
@@ -41,10 +42,35 @@ export const load: PageServerLoad = async ({ params }) => {
 		.where(eq(eventRsvps.memberId, member.id))
 		.orderBy(desc(events.date));
 
-	return { member, attended, rsvps };
+	return { member, attended, rsvps, currentUserRole: locals.member?.adminRole ?? null };
 };
 
 export const actions: Actions = {
+	updateAdminRole: async ({ request, params, locals }) => {
+		if (locals.member?.adminRole !== 'super_admin') {
+			return fail(403, { error: 'Only super admins can manage admin roles.' });
+		}
+
+		const formData = await request.formData();
+		const adminRole = formData.get('adminRole') as string;
+
+		if (adminRole && !ROLES.includes(adminRole as any)) {
+			return fail(400, { error: 'Invalid admin role.' });
+		}
+
+		// Prevent removing your own super_admin role
+		if (params.id === locals.member.id && adminRole !== 'super_admin') {
+			return fail(400, { error: 'You cannot remove your own super admin role.' });
+		}
+
+		await db
+			.update(members)
+			.set({ adminRole: adminRole || null, updatedAt: new Date() })
+			.where(eq(members.id, params.id));
+
+		return { success: true };
+	},
+
 	updateRole: async ({ request, params }) => {
 		const formData = await request.formData();
 		const role = formData.get('role') as 'member' | 'board';

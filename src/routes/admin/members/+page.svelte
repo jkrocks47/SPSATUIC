@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
-	import { EVENT_PREFERENCES } from '$lib/utils/constants';
+	import { EVENT_PREFERENCES, ROLES } from '$lib/utils/constants';
 
 	let { data, form } = $props();
 
@@ -97,6 +97,7 @@
 						<th>Events</th>
 						<th>Interests</th>
 						<th>Role</th>
+						<th>Admin</th>
 						<th>Verified</th>
 						<th>Joined</th>
 					</tr>
@@ -133,6 +134,23 @@
 										<option value="board" selected={member.role === 'board'}>Board</option>
 									</select>
 								</form>
+							</td>
+							<td>
+								{#if data.currentUserRole === 'super_admin'}
+									<form method="POST" action="?/updateAdminRole" use:enhance class="inline-form">
+										<input type="hidden" name="id" value={member.id} />
+										<select name="adminRole" onchange={(e) => e.currentTarget.form?.requestSubmit()} class="role-select">
+											<option value="" selected={!member.adminRole}>None</option>
+											<option value="super_admin" selected={member.adminRole === 'super_admin'}>Super Admin</option>
+											<option value="astronomy_admin" selected={member.adminRole === 'astronomy_admin'}>Astronomy Admin</option>
+											<option value="physics_admin" selected={member.adminRole === 'physics_admin'}>Physics Admin</option>
+										</select>
+									</form>
+								{:else if member.adminRole}
+									<span class="admin-badge">{member.adminRole.replace('_', ' ')}</span>
+								{:else}
+									<span class="no-prefs">--</span>
+								{/if}
 							</td>
 							<td>
 								<span class="verify-badge" class:verified={member.emailVerified} class:unverified={!member.emailVerified}>
@@ -264,4 +282,6 @@
 
 	.interest-more { font-size: 0.6rem; color: #9ca3af; padding: 0.1rem 0.2rem; }
 	.no-prefs { color: #d1d5db; font-size: 0.75rem; }
+
+	.admin-badge { font-size: 0.65rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 9999px; background: #fef3c7; color: #d97706; text-transform: capitalize; }
 </style>

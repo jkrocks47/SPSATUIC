@@ -49,6 +49,7 @@ export const members = pgTable('members', {
 	eventPreferences: jsonb('event_preferences').$type<string[]>(),
 	preferencesReviewedAt: timestamp('preferences_reviewed_at'),
 	preferenceReminderSentAt: timestamp('preference_reminder_sent_at'),
+	secondaryEmail: text('secondary_email'),
 	profileImageUrl: text('profile_image_url'),
 	createdAt: timestamp('created_at').defaultNow(),
 	updatedAt: timestamp('updated_at').defaultNow()
