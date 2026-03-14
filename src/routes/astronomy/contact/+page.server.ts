@@ -1,9 +1,18 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
 import { sendContactEmail } from '$lib/server/email';
+import { getBoardEmails } from '$lib/server/db/queries';
+import { getContentWithDefaults } from '$lib/server/content';
+import { eq } from 'drizzle-orm';
+import { db } from '$lib/server/db';
+import { clubInfo } from '$lib/server/db/schema';
 
 export const load: PageServerLoad = async () => {
-	return {};
+	const [content, clubInfoResult] = await Promise.all([
+		getContentWithDefaults('astronomy', 'contact'),
+		db.select().from(clubInfo).where(eq(clubInfo.clubType, 'astronomy')).limit(1)
+	]);
+	return { content, clubInfo: clubInfoResult[0] ?? null };
 };
 
 export const actions: Actions = {
@@ -18,7 +27,8 @@ export const actions: Actions = {
 		}
 
 		try {
-			await sendContactEmail(name, email, message);
+			const recipientEmails = await getBoardEmails('astronomy');
+			await sendContactEmail(name, email, message, recipientEmails);
 			return { success: true };
 		} catch (err) {
 			console.error('Failed to send contact email:', err);

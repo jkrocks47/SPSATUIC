@@ -1,34 +1,30 @@
 import { redirect, type Handle } from '@sveltejs/kit';
-import { validateSession, validateMemberSession } from '$lib/server/auth';
+import { validateMemberSession } from '$lib/server/auth';
 import { canManageClub } from '$lib/utils/constants';
 import type { ClubType } from '$lib/utils/constants';
+import {
+	startReminderScheduler,
+	stopReminderScheduler
+} from '$lib/server/reminder-scheduler';
+
+// Start the reminder scheduler once when the server boots
+startReminderScheduler();
+
+// Clean up on HMR in dev
+if (import.meta.hot) {
+	import.meta.hot.dispose(() => stopReminderScheduler());
+}
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const { pathname } = event.url;
 
 	// Initialize locals
-	event.locals.user = null;
 	event.locals.member = null;
 
-	// Admin session validation (only on /admin routes)
-	const sessionToken = event.cookies.get('session');
-	if (sessionToken && pathname.startsWith('/admin')) {
-		try {
-			event.locals.user = await validateSession(sessionToken);
-		} catch {
-			event.locals.user = null;
-		}
-	}
-
-	// Member session validation (on dashboard, checkin, event detail, and member API routes)
+	// Member session validation — always resolve if cookie exists so any page can check auth state
 	const memberToken = event.cookies.get('member_session');
-	const needsMemberAuth =
-		pathname.startsWith('/dashboard') ||
-		pathname.startsWith('/checkin') ||
-		pathname.startsWith('/api/member') ||
-		pathname.match(/^\/(astronomy|physics)\/events\/[^/]+$/);
 
-	if (memberToken && needsMemberAuth) {
+	if (memberToken) {
 		try {
 			event.locals.member = await validateMemberSession(memberToken);
 		} catch {
@@ -48,8 +44,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 			return resolve(event);
 		}
 
-		// All other admin routes require auth
-		if (!event.locals.user) {
+		// All other admin routes require auth + admin role
+		if (!event.locals.member?.adminRole) {
 			throw redirect(303, '/admin');
 		}
 
@@ -57,7 +53,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const clubMatch = pathname.match(/^\/admin\/(astronomy|physics)/);
 		if (clubMatch) {
 			const club = clubMatch[1] as ClubType;
-			if (!canManageClub(event.locals.user.role, club)) {
+			if (!canManageClub(event.locals.member.adminRole, club)) {
 				throw redirect(303, '/admin');
 			}
 		}

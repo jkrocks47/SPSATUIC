@@ -6,6 +6,11 @@
 	let showForm = $state(false);
 	let editingId = $state<string | null>(null);
 	let showQrId = $state<string | null>(null);
+	let showInterests = $state(false);
+
+	let interestData = $derived(data.interestData ?? []);
+	let topInterest = $derived(interestData.length > 0 && interestData[0].count > 0 ? interestData[0] : null);
+	let maxInterestCount = $derived(interestData.length > 0 ? interestData[0].count : 1);
 </script>
 
 <svelte:head>
@@ -13,6 +18,44 @@
 </svelte:head>
 
 <div class="events-page">
+	{#if data.historicalRate !== null}
+		<div class="historical-rate">
+			Historical turnout rate for Physics events: <strong>{data.historicalRate}%</strong> of "going" RSVPs
+		</div>
+	{/if}
+
+	{#if interestData.length > 0}
+		<div class="interest-panel">
+			<button class="interest-toggle" onclick={() => showInterests = !showInterests}>
+				<span class="interest-toggle-label">
+					{#if topInterest}
+						Suggested: <strong>{topInterest.preference}</strong> event ({topInterest.count} of {data.activeMemberCount} active members)
+					{:else}
+						Member Interests
+					{/if}
+				</span>
+				<span class="toggle-icon">{showInterests ? '−' : '+'}</span>
+			</button>
+
+			{#if showInterests}
+				<div class="interest-details">
+					<p class="interest-source">Based on {data.activeMemberCount} active member{data.activeMemberCount !== 1 ? 's' : ''} (verified, active in last 6 months)</p>
+					<div class="interest-bars">
+						{#each interestData as interest}
+							<div class="interest-row">
+								<span class="interest-name">{interest.preference}</span>
+								<div class="bar-track">
+									<div class="bar-fill" style="width: {maxInterestCount > 0 ? (interest.count / maxInterestCount) * 100 : 0}%"></div>
+								</div>
+								<span class="interest-count">{interest.count}</span>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/if}
+		</div>
+	{/if}
+
 	<div class="page-header">
 		<h1 class="page-title">Physics Events</h1>
 		<button class="add-btn" onclick={() => { showForm = !showForm; editingId = null; }}>
@@ -91,6 +134,7 @@
 						<th>Title</th>
 						<th>Date</th>
 						<th>RSVPs</th>
+						<th>Est. Turnout</th>
 						<th>Attended</th>
 						<th>Status</th>
 						<th>Actions</th>
@@ -99,7 +143,9 @@
 				<tbody>
 					{#each data.events as event}
 						<tr>
-							<td class="title-cell">{event.title}</td>
+							<td class="title-cell">
+								<a href="/admin/physics/events/{event.id}" class="event-link">{event.title}</a>
+							</td>
 							<td>{event.date}</td>
 							<td class="rsvp-cell">
 								{#if event.rsvpCounts.going > 0}
@@ -109,6 +155,13 @@
 									<span class="mini-badge maybe">{event.rsvpCounts.maybe} maybe</span>
 								{/if}
 								{#if event.rsvpCounts.going === 0 && event.rsvpCounts.maybe === 0}
+									<span class="no-data">--</span>
+								{/if}
+							</td>
+							<td class="turnout-cell">
+								{#if event.estimatedTurnout > 0}
+									<span class="mini-badge turnout">~{event.estimatedTurnout}</span>
+								{:else}
 									<span class="no-data">--</span>
 								{/if}
 							</td>
@@ -137,7 +190,7 @@
 
 						{#if showQrId === event.id && event.checkinCode}
 							<tr>
-								<td colspan="6" class="qr-row">
+								<td colspan="7" class="qr-row">
 									<div class="qr-info">
 										<p class="qr-label">Check-in URL:</p>
 										<code class="qr-url">/checkin/{event.id}?code={event.checkinCode}</code>
@@ -150,7 +203,7 @@
 
 						{#if editingId === event.id}
 							<tr>
-								<td colspan="6" class="edit-row">
+								<td colspan="7" class="edit-row">
 									<form method="POST" action="?/edit" use:enhance={() => {
 										return async ({ update }) => { await update(); editingId = null; };
 									}}>
@@ -181,7 +234,19 @@
 </div>
 
 <style>
-	.events-page { max-width: 1100px; }
+	.events-page { max-width: 1200px; }
+
+	.historical-rate {
+		background: #f9fafb;
+		border: 1px solid #e5e7eb;
+		border-radius: 0.5rem;
+		padding: 0.75rem 1rem;
+		font-size: 0.85rem;
+		color: #374151;
+		margin-bottom: 1.25rem;
+	}
+
+	.historical-rate strong { color: #4f46e5; }
 	.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
 	.page-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: #191923; }
 	.add-btn { padding: 0.5rem 1rem; background: #4f46e5; color: #fff; border: none; border-radius: 0.375rem; font-size: 0.825rem; font-weight: 500; cursor: pointer; }
@@ -207,10 +272,13 @@
 	.data-table th { background: #f9fafb; padding: 0.65rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e5e7eb; }
 	.data-table td { padding: 0.75rem 1rem; font-size: 0.85rem; color: #374151; border-bottom: 1px solid #f3f4f6; }
 	.title-cell { font-weight: 500; }
+	.event-link { color: #4f46e5; text-decoration: none; }
+	.event-link:hover { text-decoration: underline; }
 	.rsvp-cell { display: flex; gap: 0.35rem; flex-wrap: wrap; }
 	.mini-badge { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 9999px; font-size: 0.65rem; font-weight: 500; }
 	.mini-badge.going { background: #dcfce7; color: #16a34a; }
 	.mini-badge.maybe { background: #fef3c7; color: #d97706; }
+	.mini-badge.turnout { background: #ede9fe; color: #7c3aed; }
 	.no-data { color: #d1d5db; }
 	.badge-btn { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; cursor: pointer; border: none; }
 	.badge-btn:hover { opacity: 0.8; }
@@ -230,5 +298,80 @@
 	.qr-url { display: block; font-size: 0.7rem; color: #6b7280; background: #fff; padding: 0.4rem 0.75rem; border-radius: 0.25rem; border: 1px solid #e5e7eb; margin-bottom: 0.5rem; word-break: break-all; }
 	.qr-hint { font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.75rem; }
 	.qr-image { width: 200px; height: 200px; border-radius: 0.5rem; }
-	@media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+	/* Interest Panel */
+	.interest-panel {
+		background: #fff;
+		border: 1px solid #e5e7eb;
+		border-radius: 0.5rem;
+		margin-bottom: 1.25rem;
+		overflow: hidden;
+	}
+
+	.interest-toggle {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.75rem 1rem;
+		background: none;
+		border: none;
+		cursor: pointer;
+		font-size: 0.85rem;
+		color: #374151;
+		text-align: left;
+	}
+
+	.interest-toggle:hover { background: #f9fafb; }
+	.interest-toggle-label strong { color: #4f46e5; }
+	.toggle-icon { font-size: 1rem; color: #9ca3af; font-weight: 600; }
+
+	.interest-details {
+		padding: 0 1rem 1rem;
+		border-top: 1px solid #f3f4f6;
+	}
+
+	.interest-source {
+		font-size: 0.75rem;
+		color: #9ca3af;
+		padding-top: 0.75rem;
+		margin-bottom: 0.25rem;
+	}
+
+	.interest-bars {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding-top: 0.75rem;
+	}
+
+	.interest-row {
+		display: grid;
+		grid-template-columns: 120px 1fr 35px;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.interest-name { font-size: 0.8rem; color: #374151; font-weight: 500; }
+
+	.bar-track {
+		height: 0.4rem;
+		background: #f3f4f6;
+		border-radius: 9999px;
+		overflow: hidden;
+	}
+
+	.bar-fill {
+		height: 100%;
+		background: #4f46e5;
+		border-radius: 9999px;
+		transition: width 0.3s ease;
+		min-width: 2px;
+	}
+
+	.interest-count { font-size: 0.75rem; font-weight: 600; color: #4f46e5; text-align: right; }
+
+	@media (max-width: 640px) {
+		.form-grid { grid-template-columns: 1fr; }
+		.interest-row { grid-template-columns: 90px 1fr 30px; }
+	}
 </style>

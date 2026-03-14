@@ -110,6 +110,5 @@
 <canvas
 	bind:this={canvas}
 	class="absolute inset-0 z-0 pointer-events-none"
-	style="will-change: transform;"
 	aria-hidden="true"
 ></canvas>

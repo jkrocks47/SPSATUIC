@@ -11,15 +11,25 @@ import { sendVerificationEmail } from '$lib/server/email';
 import { registrationSchema } from '$lib/utils/validation';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
-	if (locals.member) {
-		throw redirect(303, '/dashboard');
+function safeRedirect(redirectTo: string | null): string {
+	if (redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')) {
+		return redirectTo;
 	}
+	return '/verify-email';
+}
+
+export const load: PageServerLoad = async ({ locals, url }) => {
+	const redirectTo = url.searchParams.get('redirectTo');
+	if (locals.member) {
+		throw redirect(303, safeRedirect(redirectTo));
+	}
+	return { redirectTo };
 };
 
 export const actions: Actions = {
 	register: async ({ request, cookies }) => {
 		const formData = await request.formData();
+		const redirectTo = formData.get('redirectTo') as string | null;
 
 		const data = {
 			email: (formData.get('email') as string)?.toLowerCase().trim(),
@@ -91,6 +101,6 @@ export const actions: Actions = {
 			maxAge: 30 * 24 * 60 * 60
 		});
 
-		throw redirect(303, '/verify-email');
+		throw redirect(303, safeRedirect(redirectTo));
 	}
 };

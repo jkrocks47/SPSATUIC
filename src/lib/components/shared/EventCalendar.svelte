@@ -171,7 +171,11 @@
 									<span class="event-date-label">{new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
 								{/if}
 							</div>
-							<h3 class="event-title">{event.title}</h3>
+							<h3 class="event-title">
+								<a href={eventDetailUrl(event)} class="card-link" data-sveltekit-preload-data="hover">
+									{event.title}
+								</a>
+							</h3>
 							{#if event.time || event.location}
 								<p class="event-meta">
 									{#if event.time}{event.time}{/if}
@@ -184,7 +188,7 @@
 							{/if}
 							<div class="event-actions">
 								<RSVPButtons eventId={event.id} {isLoggedIn} {isVerified} redirectTo="/" />
-								<a href={eventDetailUrl(event)} class="detail-link">View details &rarr;</a>
+								<a href={eventDetailUrl(event)} class="detail-hint">View details &rarr;</a>
 							</div>
 						</div>
 					</div>
@@ -421,19 +425,37 @@
 	}
 
 	.event-card {
+		position: relative;
 		background: rgba(13, 27, 42, 0.6);
 		backdrop-filter: blur(12px);
 		border: 1px solid rgba(245, 240, 232, 0.08);
 		border-radius: 14px;
 		overflow: hidden;
-		transition: border-color 0.2s ease, box-shadow 0.2s ease;
+		cursor: pointer;
+		transition: border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+			box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+			background 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+			transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 	}
 	.event-card.astro-border { border-left: 3px solid #a855f7; }
 	.event-card.phys-border { border-left: 3px solid #CE1126; }
-	.event-card:hover {
-		border-color: rgba(245, 240, 232, 0.12);
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+
+	/* Club-specific hover glows */
+	.event-card.astro-border:hover {
+		border-color: rgba(168, 85, 247, 0.25);
+		box-shadow: 0 4px 24px rgba(168, 85, 247, 0.15), 0 0 12px rgba(168, 85, 247, 0.08);
+		background: rgba(168, 85, 247, 0.04);
+		transform: translateY(-2px);
 	}
+	.event-card.astro-border:hover .card-link { color: #c4b5fd; }
+
+	.event-card.phys-border:hover {
+		border-color: rgba(206, 17, 38, 0.25);
+		box-shadow: 0 4px 24px rgba(206, 17, 38, 0.15), 0 0 12px rgba(206, 17, 38, 0.08);
+		background: rgba(206, 17, 38, 0.04);
+		transform: translateY(-2px);
+	}
+	.event-card.phys-border:hover .card-link { color: #fca5a5; }
 
 	.event-thumb {
 		width: 100%; height: 100px;
@@ -468,20 +490,42 @@
 		line-height: 1.5; margin-bottom: 0.5rem;
 	}
 
+	/* Pseudo-content link pattern — card-link covers the entire card */
+	.card-link {
+		color: inherit;
+		text-decoration: none;
+		transition: color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+	.card-link::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		border-radius: 14px;
+	}
+	.card-link:focus-visible { outline: none; }
+	.card-link:focus-visible::after {
+		outline: 2px solid rgba(206, 17, 38, 0.6);
+		outline-offset: 2px;
+		border-radius: 14px;
+	}
+
 	.event-actions {
+		position: relative;
+		z-index: 1;
 		display: flex; align-items: center;
 		justify-content: space-between; flex-wrap: wrap;
 		gap: 0.5rem; margin-top: 0.25rem;
 	}
 
-	.detail-link {
+	.detail-hint {
 		font-family: 'JetBrains Mono', monospace;
 		font-size: 0.6rem; letter-spacing: 0.06em;
 		color: rgba(245,240,232,0.4);
 		text-decoration: none;
 		transition: color 0.2s ease;
 	}
-	.detail-link:hover { color: #f5f0e8; }
+	.event-card:hover .detail-hint { color: #f5f0e8; }
 
 	/* Mobile */
 	@media (max-width: 768px) {
@@ -491,7 +535,8 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.filter-pill, .event-card, .day-cell, .calendar-nav button { transition: none; }
+		.filter-pill, .event-card, .day-cell, .calendar-nav button, .card-link { transition: none; }
 		.day-cell.has-astro, .day-cell.has-phys, .day-cell.has-both { animation: none; }
+		.event-card:hover { transform: none; }
 	}
 </style>

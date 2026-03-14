@@ -145,6 +145,13 @@
 	background: rgba(10, 10, 15, 0.9);
 }
 
+@media (max-width: 768px) {
+	.frosted-nav {
+		-webkit-backdrop-filter: blur(8px);
+		backdrop-filter: blur(8px);
+	}
+}
+
 /* Pill Button */
 .pill-btn {
 	display: inline-flex;

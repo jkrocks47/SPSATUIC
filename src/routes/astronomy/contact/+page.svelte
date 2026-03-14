@@ -1,8 +1,8 @@
 <script lang="ts">
 	import GlassPanel from '$lib/components/astronomy/GlassPanel.svelte';
-	import type { ActionData } from './$types';
+	import type { ActionData, PageData } from './$types';
 
-	let { form }: { form: ActionData } = $props();
+	let { form, data }: { form: ActionData; data: PageData } = $props();
 
 	let submitting = $state(false);
 </script>
@@ -15,9 +15,9 @@
 	<div class="max-w-4xl mx-auto">
 		<!-- Header -->
 		<div class="mb-16 text-center">
-			<p class="font-mono text-xs tracking-[0.3em] text-astro-indigo/80 mb-4">REACH OUT</p>
+			<p class="font-mono text-xs tracking-[0.3em] text-astro-indigo/80 mb-4">{data.content['page-subtitle'] ?? 'REACH OUT'}</p>
 			<h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-astro-cream chromatic-text">
-				CONTACT
+				{data.content['page-title'] ?? 'CONTACT'}
 			</h1>
 			<div class="mt-4 mx-auto w-24 h-px bg-gradient-to-r from-transparent via-astro-indigo to-transparent"></div>
 		</div>
@@ -26,12 +26,12 @@
 			<!-- Contact Info -->
 			<div class="flex flex-col gap-6">
 				<GlassPanel class="p-6">
-					<h3 class="font-display text-lg font-bold text-astro-cream mb-4">Get in Touch</h3>
+					<h3 class="font-display text-lg font-bold text-astro-cream mb-4">{data.content['contact-heading'] ?? 'Get in Touch'}</h3>
 					<div class="space-y-4">
 						<div>
 							<p class="font-mono text-[10px] tracking-[0.2em] text-astro-cream/40 mb-1">EMAIL</p>
-							<a href="mailto:astro@uic.edu" class="font-mono text-sm text-astro-cyan hover:text-astro-cyan/80 transition-colors no-underline">
-								astro@uic.edu
+							<a href="mailto:{data.clubInfo?.contactEmail ?? 'uicastronomyclub@gmail.com'}" class="font-mono text-sm text-astro-cyan hover:text-astro-cyan/80 transition-colors no-underline block">
+								{data.clubInfo?.contactEmail ?? 'uicastronomyclub@gmail.com'}
 							</a>
 						</div>
 						<div>
@@ -85,7 +85,7 @@
 						</p>
 					</div>
 				{:else}
-					<h3 class="font-display text-lg font-bold text-astro-cream mb-6">Send a Message</h3>
+					<h3 class="font-display text-lg font-bold text-astro-cream mb-6">{data.content['form-heading'] ?? 'Send a Message'}</h3>
 
 					{#if form?.error}
 						<div class="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30">

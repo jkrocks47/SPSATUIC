@@ -36,9 +36,10 @@ export const UIC_COORDINATES = {
 	display: '41.8708° N, 87.6505° W'
 };
 
-export const CONTACT_EMAIL = 'astro@uic.edu';
+export const CONTACT_EMAILS = ['mwell8@uic.edu', 'uicastronomyclub@gmail.com'];
 
-export function canManageClub(role: Role, club: ClubType): boolean {
+export function canManageClub(role: Role | null, club: ClubType): boolean {
+	if (!role) return false;
 	if (role === 'super_admin') return true;
 	if (role === 'astronomy_admin' && club === 'astronomy') return true;
 	if (role === 'physics_admin' && club === 'physics') return true;

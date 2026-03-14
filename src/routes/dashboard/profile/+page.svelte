@@ -21,7 +21,12 @@
 	{/if}
 
 	<div class="profile-card">
-		<form method="POST" action="?/update" use:enhance>
+		<form method="POST" action="?/update" use:enhance={() => {
+			return async ({ update }) => {
+				await update({ reset: false });
+			};
+		}}>
+
 			<div class="form-row">
 				<div class="form-group">
 					<label for="firstName">First Name *</label>

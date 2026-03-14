@@ -27,9 +27,9 @@
 	<div class="max-w-7xl mx-auto">
 		<!-- Header -->
 		<div class="mb-12">
-			<p class="font-body text-sm tracking-widest text-physics-blue/70 uppercase mb-2">Visual archive</p>
+			<p class="font-body text-sm tracking-widest text-physics-blue/70 uppercase mb-2">{data.content['page-subtitle'] ?? 'Visual archive'}</p>
 			<h1 class="font-display text-4xl sm:text-5xl font-bold tracking-tight text-physics-dark">
-				Gallery
+				{data.content['page-title'] ?? 'Gallery'}
 			</h1>
 			<div class="mt-4 w-16 h-0.5 bg-physics-blue/30"></div>
 		</div>
@@ -48,7 +48,7 @@
 					>
 						<div class="rounded-xl overflow-hidden group relative">
 							<img
-								src={image.url}
+								src={image.thumbnailUrl || image.url}
 								alt={image.caption || 'Gallery image'}
 								class="w-full h-auto block transition-transform duration-500 group-hover:scale-105"
 								loading="lazy"

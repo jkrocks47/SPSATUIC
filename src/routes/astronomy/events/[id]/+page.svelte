@@ -28,12 +28,21 @@
 					src={event.imageUrl}
 					alt={event.title}
 					class="w-full h-64 sm:h-96 object-cover"
+					class:grayscale={data.isPast}
 				/>
 			</div>
 		{/if}
 
 		<!-- Content -->
 		<GlassPanel class="p-8 sm:p-12">
+			{#if data.isPast}
+				<div class="mb-6 pb-4 border-b border-white/10">
+					<span class="font-mono text-xs tracking-[0.15em] px-3 py-1 rounded-full bg-astro-cream/10 text-astro-cream/40 border border-astro-cream/10">
+						PAST EVENT
+					</span>
+				</div>
+			{/if}
+
 			<h1 class="font-display text-3xl sm:text-4xl font-bold text-astro-cream mb-6 chromatic-text">
 				{event.title}
 			</h1>
@@ -61,16 +70,18 @@
 				{/if}
 			</div>
 
-			<!-- RSVP counts -->
-			{#if data.rsvpCounts.going > 0 || data.rsvpCounts.maybe > 0}
-				<div class="flex gap-3 mb-4">
-					{#if data.rsvpCounts.going > 0}
-						<span class="font-mono text-xs text-green-400/70">{data.rsvpCounts.going} going</span>
-					{/if}
-					{#if data.rsvpCounts.maybe > 0}
-						<span class="font-mono text-xs text-yellow-400/70">{data.rsvpCounts.maybe} maybe</span>
-					{/if}
-				</div>
+			{#if !data.isPast}
+				<!-- RSVP counts -->
+				{#if data.rsvpCounts.going > 0 || data.rsvpCounts.maybe > 0}
+					<div class="flex gap-3 mb-4">
+						{#if data.rsvpCounts.going > 0}
+							<span class="font-mono text-xs text-green-400/70">{data.rsvpCounts.going} going</span>
+						{/if}
+						{#if data.rsvpCounts.maybe > 0}
+							<span class="font-mono text-xs text-yellow-400/70">{data.rsvpCounts.maybe} maybe</span>
+						{/if}
+					</div>
+				{/if}
 			{/if}
 
 			{#if event.description}
@@ -80,13 +91,15 @@
 			{/if}
 
 			<!-- RSVP Buttons -->
-			<RSVPButtons
-				eventId={event.id}
-				currentStatus={data.memberRsvp}
-				isLoggedIn={data.isLoggedIn}
-				isVerified={data.isVerified}
-				redirectTo={`/astronomy/events/${event.id}`}
-			/>
+			{#if !data.isPast}
+				<RSVPButtons
+					eventId={event.id}
+					currentStatus={data.memberRsvp}
+					isLoggedIn={data.isLoggedIn}
+					isVerified={data.isVerified}
+					redirectTo={`/astronomy/events/${event.id}`}
+				/>
+			{/if}
 		</GlassPanel>
 	</div>
 </section>

@@ -36,3 +36,8 @@ export function isToday(date: string | Date): boolean {
 		d.getFullYear() === today.getFullYear()
 	);
 }
+
+export function isPastEvent(date: string | Date): boolean {
+	const eventDate = typeof date === 'string' ? new Date(date + 'T23:59:59') : date;
+	return eventDate < new Date();
+}

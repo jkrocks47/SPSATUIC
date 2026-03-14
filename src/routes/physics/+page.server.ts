@@ -1,13 +1,14 @@
 import { eq, asc, desc, and, gte, lte, or, isNull } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { events, galleryImages, announcements } from '$lib/server/db/schema';
+import { getContentWithDefaults } from '$lib/server/content';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
 	try {
 		const now = new Date();
 
-		const [upcomingEvents, recentImages, activeAnnouncements] = await Promise.all([
+		const [upcomingEvents, recentImages, activeAnnouncements, content] = await Promise.all([
 			db
 				.select()
 				.from(events)
@@ -36,20 +37,23 @@ export const load: PageServerLoad = async () => {
 					)
 				)
 				.orderBy(desc(announcements.isPinned), desc(announcements.createdAt))
-				.limit(5)
+				.limit(5),
+			getContentWithDefaults('physics', 'home')
 		]);
 
 		return {
 			events: upcomingEvents,
 			images: recentImages,
-			announcements: activeAnnouncements
+			announcements: activeAnnouncements,
+			content
 		};
 	} catch (e) {
 		console.error('Failed to load physics data:', e);
 		return {
 			events: [],
 			images: [],
-			announcements: []
+			announcements: [],
+			content: {} as Record<string, string>
 		};
 	}
 };

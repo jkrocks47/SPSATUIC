@@ -16,7 +16,9 @@
 	{/if}
 
 	{#if form?.success}
-		<div class="success-message">Image uploaded successfully.</div>
+		<div class="success-message">
+			{form.action === 'delete' ? 'Image deleted successfully.' : 'Image uploaded successfully.'}
+		</div>
 	{/if}
 
 	<div class="upload-card">
@@ -47,7 +49,7 @@
 			{#each data.images as image}
 				<div class="image-card">
 					<div class="image-wrapper">
-						<img src={image.url} alt={image.caption || 'Gallery image'} loading="lazy" />
+						<img src={image.thumbnailUrl || image.url} alt={image.caption || 'Gallery image'} loading="lazy" />
 					</div>
 					<div class="image-info">
 						{#if image.caption}

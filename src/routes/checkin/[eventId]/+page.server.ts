@@ -1,12 +1,13 @@
 import { error, redirect } from '@sveltejs/kit';
 import { eq, and } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { events, eventCheckins } from '$lib/server/db/schema';
+import { events, eventCheckins, members } from '$lib/server/db/schema';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, url, locals }) => {
 	if (!locals.member) {
-		throw redirect(303, `/login?redirect=/checkin/${params.eventId}?code=${url.searchParams.get('code') || ''}`);
+		const redirectPath = `/checkin/${params.eventId}?code=${url.searchParams.get('code') || ''}`;
+		throw redirect(303, `/login?redirectTo=${encodeURIComponent(redirectPath)}`);
 	}
 
 	if (!locals.member.emailVerified) {
@@ -41,6 +42,18 @@ export const load: PageServerLoad = async ({ params, url, locals }) => {
 		error(400, 'Invalid check-in code.');
 	}
 
+	// Auto-join club if not already a member
+	let joinedClub = false;
+	const isMember =
+		event.clubType === 'astronomy' ? locals.member.astronomyMember : locals.member.physicsMember;
+
+	if (!isMember) {
+		const clubField =
+			event.clubType === 'astronomy' ? { astronomyMember: true } : { physicsMember: true };
+		await db.update(members).set(clubField).where(eq(members.id, locals.member.id));
+		joinedClub = true;
+	}
+
 	// Check if already checked in
 	const existing = await db
 		.select({ id: eventCheckins.id })
@@ -54,7 +67,7 @@ export const load: PageServerLoad = async ({ params, url, locals }) => {
 		.limit(1);
 
 	if (existing.length > 0) {
-		return { event, alreadyCheckedIn: true, success: false };
+		return { event, alreadyCheckedIn: true, success: false, joinedClub };
 	}
 
 	// Record check-in
@@ -63,5 +76,5 @@ export const load: PageServerLoad = async ({ params, url, locals }) => {
 		memberId: locals.member.id
 	});
 
-	return { event, alreadyCheckedIn: false, success: true };
+	return { event, alreadyCheckedIn: false, success: true, joinedClub };
 };

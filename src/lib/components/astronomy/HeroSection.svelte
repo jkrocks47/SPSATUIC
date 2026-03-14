@@ -3,6 +3,14 @@
 	import LunarPhaseViz from '$lib/components/astronomy/LunarPhaseViz.svelte';
 	import AmbientParticles from '$lib/components/astronomy/AmbientParticles.svelte';
 
+	interface Props {
+		heroTitle?: string;
+		heroSubtitle?: string;
+		heroCta?: string;
+	}
+
+	let { heroTitle, heroSubtitle, heroCta }: Props = $props();
+
 	let parallaxY = $state(0);
 	let reducedMotion = $state(false);
 	let mounted = $state(false);
@@ -27,6 +35,7 @@
 
 	$effect(() => {
 		if (!browser || reducedMotion) return;
+		if (window.innerWidth < 768) return;
 
 		const onScroll = () => {
 			parallaxY = window.scrollY * 0.3;
@@ -51,7 +60,7 @@
 	});
 </script>
 
-<section class="relative h-screen w-full overflow-hidden bg-[#080510]">
+<section class="relative h-dvh w-full overflow-hidden bg-[#080510]">
 	<!-- Layer 1: Vivid nebula — warm oranges, deep purples, magentas, cosmic dust -->
 	<div class="absolute inset-0 nebula-bg"></div>
 
@@ -369,35 +378,51 @@
 
 	<!-- Layer 11: Main content — CENTERED like reference design -->
 	<div
-		class="relative z-10 flex flex-col items-center justify-center h-full px-6 sm:px-10 lg:px-16 text-center"
+		class="relative z-10 flex flex-col items-center justify-center h-full px-6 sm:px-10 lg:px-16 text-center max-w-6xl mx-auto"
 		style="transform: translateY({parallaxY}px)"
 	>
 		<!-- Colossal distressed headline -->
 		<h1 class="font-display-hero uppercase">
-			<span
-				class="hero-observe relative block"
-				class:mounted
-				style="font-size: clamp(4.5rem, 15vw, 14rem); line-height: 0.88;"
-			>
-				<span class="hero-text-inner">OBSERVE</span>
-			</span>
-			<span
-				class="hero-cosmos block"
-				class:mounted
-				style="font-size: clamp(3.5rem, 11vw, 10rem); line-height: 0.92;"
-			>
-				<span class="hero-text-inner">THE COSMOS</span>
-			</span>
+			{#if heroTitle}
+				<span
+					class="hero-observe relative block"
+					class:mounted
+					style="font-size: clamp(3.5rem, 10vw, 8rem); line-height: 0.95;"
+				>
+					{#each heroTitle.split('') as char, i}
+						<span class="hero-letter hero-text-inner" class:mounted style="transition-delay: {300 + i * 40}ms">{char === ' ' ? '\u00A0' : char}</span>
+					{/each}
+				</span>
+			{:else}
+				<span
+					class="hero-observe relative block"
+					class:mounted
+					style="font-size: clamp(4.5rem, 13vw, 11rem); line-height: 0.9;"
+				>
+					{#each 'OBSERVE'.split('') as char, i}
+						<span class="hero-letter hero-text-inner" class:mounted style="transition-delay: {300 + i * 40}ms">{char}</span>
+					{/each}
+				</span>
+				<span
+					class="hero-cosmos block"
+					class:mounted
+					style="font-size: clamp(3.5rem, 9.5vw, 8rem); line-height: 0.95;"
+				>
+					{#each 'THE COSMOS'.split('') as char, i}
+						<span class="hero-letter hero-text-inner" class:mounted style="transition-delay: {500 + i * 35}ms">{char === ' ' ? '\u00A0' : char}</span>
+					{/each}
+				</span>
+			{/if}
 		</h1>
 
 		<p class="mt-5 font-body text-sm md:text-base text-astro-cream/60 max-w-lg hero-subtitle" class:mounted>
-			University of Illinois Chicago — Exploring the universe from the urban canopy. EST. 2010.
+			{heroSubtitle ?? 'University of Illinois Chicago — Exploring the universe from the urban canopy. EST. 2010.'}
 		</p>
 
 		<!-- CTA: command-line terminal feel -->
 		<div class="relative mt-6 cta-wrapper" class:mounted>
 			<a href="/astronomy/events" class="cta-terminal">
-				[ INITIATE OBSERVATION ]
+				[ {heroCta ?? 'INITIATE OBSERVATION'} ]
 			</a>
 			<div class="cta-scan-line"></div>
 		</div>
@@ -653,15 +678,14 @@
 	   ================================================================ */
 	.hero-observe {
 		opacity: 0;
-		transform: translateY(40px) scale(0.95);
-		transition: opacity 0.8s ease-out, transform 0.8s ease-out, letter-spacing 0.8s ease-out;
-		letter-spacing: 0.1em;
+		transform: translateY(40px);
+		transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+		letter-spacing: -0.03em;
 	}
 
 	.hero-observe.mounted {
 		opacity: 1;
-		transform: translateY(0) scale(1);
-		letter-spacing: -0.03em;
+		transform: translateY(0);
 		transition-delay: 0.3s;
 	}
 
@@ -681,6 +705,20 @@
 		filter: drop-shadow(0 2px 12px rgba(0,0,0,0.6))
 			drop-shadow(0 0 40px rgba(0,0,0,0.4))
 			drop-shadow(0 0 80px rgba(232,140,60,0.25));
+	}
+
+	/* Per-letter GPU-accelerated animation */
+	.hero-letter {
+		display: inline-block;
+		transform: translateX(0.3em);
+		opacity: 0;
+		transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease-out;
+		will-change: transform, opacity;
+	}
+
+	.hero-letter.mounted {
+		transform: translateX(0);
+		opacity: 1;
 	}
 
 	/* Subtle glow behind OBSERVE */
@@ -704,15 +742,14 @@
 
 	.hero-cosmos {
 		opacity: 0;
-		transform: translateY(40px) scale(0.95);
-		transition: opacity 0.8s ease-out, transform 0.8s ease-out, letter-spacing 0.8s ease-out;
-		letter-spacing: 0.1em;
+		transform: translateY(40px);
+		transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+		letter-spacing: -0.03em;
 	}
 
 	.hero-cosmos.mounted {
 		opacity: 1;
-		transform: translateY(0) scale(1);
-		letter-spacing: -0.03em;
+		transform: translateY(0);
 		transition-delay: 0.5s;
 	}
 
@@ -867,6 +904,12 @@
 			transform: none;
 			transition: none;
 			letter-spacing: -0.03em;
+		}
+
+		.hero-letter {
+			opacity: 1;
+			transform: none;
+			transition: none;
 		}
 
 		.cta-scan-line::after {

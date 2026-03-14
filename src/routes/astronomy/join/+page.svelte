@@ -1,5 +1,6 @@
 <script lang="ts">
 	import AmbientParticles from '$lib/components/astronomy/AmbientParticles.svelte';
+	let { data } = $props();
 </script>
 
 <svelte:head>
@@ -16,10 +17,10 @@
 		<!-- Header — brutalist, left-aligned -->
 		<div class="mb-16">
 			<p class="font-mono text-[10px] tracking-[0.3em] text-astro-cream/30 uppercase mb-3">
-				UIC ASTRONOMY CLUB // MEMBERSHIP
+				{data.content['page-subtitle'] ?? 'UIC ASTRONOMY CLUB // MEMBERSHIP'}
 			</p>
 			<h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-astro-cream uppercase" style="line-height: 0.92;">
-				JOIN THE<br />OBSERVATORY
+				{data.content['page-title'] ?? 'JOIN THE OBSERVATORY'}
 			</h1>
 			<div class="mt-4 h-px w-20 bg-astro-cream/15"></div>
 		</div>
@@ -29,16 +30,15 @@
 			<!-- Left column: What you get -->
 			<div class="lg:col-span-3 space-y-8">
 				<p class="font-body text-base text-astro-cream/55 max-w-lg">
-					No experience necessary. All UIC students are welcome regardless of major or year.
-					Create an account to RSVP for events, access the gallery, and join the community.
+					{data.content['intro-text'] ?? 'No experience necessary. All UIC students are welcome regardless of major or year. Create an account to RSVP for events, access the gallery, and join the community.'}
 				</p>
 
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
 					{#each [
-						{ icon: '&#9790;', title: 'Observing Sessions', desc: 'Telescope access and guided nights on campus rooftops and at dark sky sites.' },
-						{ icon: '&#9733;', title: 'Guest Lectures', desc: 'Hear from astronomers, astrophysicists, and researchers at the frontier.' },
-						{ icon: '&#9788;', title: 'Workshops', desc: 'Astrophotography, telescope operation, celestial navigation — hands on.' },
-						{ icon: '&#10038;', title: 'Community', desc: 'Connect with fellow space enthusiasts. Build friendships under the stars.' }
+						{ icon: '&#9790;', title: data.content['benefit-1-title'] ?? 'Observing Sessions', desc: data.content['benefit-1-body'] ?? 'Telescope access and guided nights on campus rooftops and at dark sky sites.' },
+						{ icon: '&#9733;', title: data.content['benefit-2-title'] ?? 'Guest Lectures', desc: data.content['benefit-2-body'] ?? 'Hear from astronomers, astrophysicists, and researchers at the frontier.' },
+						{ icon: '&#9788;', title: data.content['benefit-3-title'] ?? 'Workshops', desc: data.content['benefit-3-body'] ?? 'Astrophotography, telescope operation, celestial navigation — hands on.' },
+						{ icon: '&#10038;', title: data.content['benefit-4-title'] ?? 'Community', desc: data.content['benefit-4-body'] ?? 'Connect with fellow space enthusiasts. Build friendships under the stars.' }
 					] as benefit}
 						<div class="benefit-card">
 							<div class="flex items-start gap-3">
@@ -68,11 +68,11 @@
 						</p>
 
 						<h2 class="font-display text-xl font-bold text-astro-cream mb-3">
-							Create Your Account
+							{data.content['cta-title'] ?? 'Create Your Account'}
 						</h2>
 
 						<p class="font-body text-sm text-astro-cream/45 mb-6 leading-relaxed">
-							Register with your <span class="text-astro-cream/70">@uic.edu</span> email to become a member. You'll be able to RSVP for events, manage your profile, and stay updated.
+							{data.content['cta-body'] ?? "Register with your @uic.edu email to become a member. You'll be able to RSVP for events, manage your profile, and stay updated."}
 						</p>
 
 						<div class="space-y-3">

@@ -11,7 +11,11 @@
 	<title>Astronomy | UICSpacetime</title>
 </svelte:head>
 
-<HeroSection />
+<HeroSection
+	heroTitle={data.content['hero-title']}
+	heroSubtitle={data.content['hero-subtitle']}
+	heroCta={data.content['hero-cta']}
+/>
 
 {#if data.announcements && data.announcements.length > 0}
 	<div class="px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto mt-8">

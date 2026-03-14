@@ -10,6 +10,7 @@
 		{ label: 'ABOUT', href: '/astronomy/about' },
 		{ label: 'OBSERVE', href: '/astronomy/events' },
 		{ label: 'GALLERY', href: '/astronomy/gallery' },
+		{ label: 'BOARD', href: '/astronomy/board' },
 		{ label: 'JOIN', href: '/astronomy/join' },
 		{ label: 'CONTACT', href: '/astronomy/contact' }
 	];
@@ -69,6 +70,13 @@
 		<div class="hidden md:flex items-center justify-between py-2.5">
 			<!-- Nav Links with + separators -->
 			<div class="flex items-center gap-3">
+				<a
+					href="/"
+					class="nav-link-hover font-mono text-xs tracking-[0.2em] text-astro-cream/70 hover:text-astro-cream transition-colors duration-200 no-underline"
+				>
+					← SPACETIME
+				</a>
+				<span class="font-mono text-xs text-white/15 select-none">+</span>
 				{#each navLinks as link, i}
 					{#if i > 0}
 						<span class="font-mono text-xs text-white/15 select-none">+</span>
@@ -93,18 +101,34 @@
 						<line x1="11" y1="11" x2="14" y2="14" />
 					</svg>
 				</button>
-				<a
-					href="/login?redirectTo={$page.url.pathname}"
-					class="font-mono text-xs tracking-[0.2em] text-astro-cream/70 hover:text-astro-cream hover:border-astro-cream/70 hover:bg-astro-cream/5 border border-astro-cream/40 px-3 py-1.5 transition-all duration-200 no-underline"
-				>
-					LOGIN
-				</a>
+				{#if $page.data.member}
+					<a
+						href="/dashboard"
+						class="font-mono text-xs tracking-[0.2em] text-astro-cream/70 hover:text-astro-cream hover:border-astro-cream/70 hover:bg-astro-cream/5 border border-astro-cream/40 px-3 py-1.5 transition-all duration-200 no-underline"
+					>
+						DASHBOARD
+					</a>
+				{:else}
+					<a
+						href="/login?redirectTo={$page.url.pathname}"
+						class="font-mono text-xs tracking-[0.2em] text-astro-cream/70 hover:text-astro-cream hover:border-astro-cream/70 hover:bg-astro-cream/5 border border-astro-cream/40 px-3 py-1.5 transition-all duration-200 no-underline"
+					>
+						SIGN IN / JOIN
+					</a>
+				{/if}
 			</div>
 		</div>
 
 		<!-- Mobile Menu -->
 		{#if mobileOpen}
 			<div class="md:hidden pb-4 border-t border-white/10 mt-2 pt-4 flex flex-col gap-4">
+				<a
+					href="/"
+					class="font-mono text-xs tracking-[0.2em] text-astro-cream/70 hover:text-astro-cream transition-colors no-underline"
+					onclick={() => (mobileOpen = false)}
+				>
+					← SPACETIME
+				</a>
 				{#each navLinks as link}
 					<a
 						href={link.href}
@@ -124,12 +148,23 @@
 							<line x1="11" y1="11" x2="14" y2="14" />
 						</svg>
 					</button>
-					<a
-						href="/login?redirectTo={$page.url.pathname}"
-						class="font-mono text-xs tracking-[0.2em] text-astro-cream/70 hover:text-astro-cream transition-colors no-underline"
-					>
-						LOGIN
-					</a>
+					{#if $page.data.member}
+						<a
+							href="/dashboard"
+							class="font-mono text-xs tracking-[0.2em] text-astro-cream/70 hover:text-astro-cream transition-colors no-underline"
+							onclick={() => (mobileOpen = false)}
+						>
+							DASHBOARD
+						</a>
+					{:else}
+						<a
+							href="/login?redirectTo={$page.url.pathname}"
+							class="font-mono text-xs tracking-[0.2em] text-astro-cream/70 hover:text-astro-cream transition-colors no-underline"
+							onclick={() => (mobileOpen = false)}
+						>
+							SIGN IN / JOIN
+						</a>
+					{/if}
 				</div>
 			</div>
 		{/if}

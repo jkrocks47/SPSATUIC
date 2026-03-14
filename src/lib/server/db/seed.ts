@@ -1,7 +1,8 @@
 import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { hashPassword } from '../auth';
-import { users, clubInfo } from './schema';
+import { members, clubInfo, pageContent } from './schema';
+import { contentEntries, clubDefaults } from '$lib/utils/content-registry';
 
 async function seed() {
 	const email = process.env.ADMIN_EMAIL;
@@ -18,12 +19,16 @@ async function seed() {
 	const passwordHash = await hashPassword(password);
 
 	await db
-		.insert(users)
+		.insert(members)
 		.values({
 			email,
 			passwordHash,
-			name: 'Admin',
-			role: 'super_admin'
+			firstName: 'Admin',
+			lastName: 'User',
+			displayName: 'Admin',
+			role: 'member',
+			adminRole: 'super_admin',
+			emailVerified: true
 		})
 		.onConflictDoNothing();
 
@@ -48,7 +53,46 @@ async function seed() {
 		])
 		.onConflictDoNothing();
 
-	console.log('Seed complete: admin user and club info created.');
+	// Seed page content defaults
+	const contentRows: {
+		slug: string;
+		clubType: 'astronomy' | 'physics' | null;
+		section: string;
+		title: string | null;
+		body: string | null;
+	}[] = [];
+
+	for (const entry of contentEntries) {
+		if (entry.clubSpecific) {
+			// Create a row for each club
+			for (const club of ['astronomy', 'physics'] as const) {
+				const key = `${entry.slug}|${entry.section}`;
+				const clubDef = clubDefaults[key]?.[club];
+				contentRows.push({
+					slug: entry.slug,
+					clubType: club,
+					section: entry.section,
+					title: clubDef?.defaultTitle ?? entry.defaultTitle ?? null,
+					body: clubDef?.defaultBody ?? entry.defaultBody ?? null
+				});
+			}
+		} else {
+			// Root homepage content — no club type
+			contentRows.push({
+				slug: entry.slug,
+				clubType: null,
+				section: entry.section,
+				title: entry.defaultTitle ?? null,
+				body: entry.defaultBody ?? null
+			});
+		}
+	}
+
+	if (contentRows.length > 0) {
+		await db.insert(pageContent).values(contentRows).onConflictDoNothing();
+	}
+
+	console.log(`Seed complete: admin member, club info, and ${contentRows.length} content blocks created.`);
 	await pool.end();
 }
 

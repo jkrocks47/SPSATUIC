@@ -82,7 +82,14 @@ export const passwordResetSchema = z.object({
 export const galleryImageSchema = z.object({
 	caption: z.string().optional(),
 	clubType: z.enum(['astronomy', 'physics']),
-	photographer: z.string().optional()
+	photographer: z.string().optional(),
+	raCoord: z.string().max(50).optional(),
+	decCoord: z.string().max(50).optional(),
+	exposureTime: z.string().max(50).optional(),
+	equipment: z.string().max(100).optional(),
+	iso: z.string().max(20).optional(),
+	aperture: z.string().max(20).optional(),
+	observationDate: z.string().max(50).optional()
 });
 
 export const officerSchema = z.object({
@@ -92,7 +99,8 @@ export const officerSchema = z.object({
 	bio: z.string().optional(),
 	clubType: z.enum(['astronomy', 'physics']),
 	sortOrder: z.number().int().default(0),
-	academicYear: z.string().optional()
+	academicYear: z.string().optional(),
+	memberId: z.string().uuid().optional().or(z.literal(''))
 });
 
 export const contentSchema = z.object({

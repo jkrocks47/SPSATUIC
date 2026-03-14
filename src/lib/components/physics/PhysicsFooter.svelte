@@ -51,7 +51,7 @@
 				Society of Physics Students at UIC
 			</p>
 			<p class="font-body text-xs text-physics-dark/30">
-				UICSpacetime
+				Physics Club
 			</p>
 		</div>
 	</div>

@@ -3,7 +3,7 @@ import { eq, desc, and } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { galleryImages } from '$lib/server/db/schema';
 import { galleryImageSchema } from '$lib/utils/validation';
-import { uploadImage, deleteImage } from '$lib/server/cloudinary';
+import { processAndStoreImage, deleteImage } from '$lib/server/images';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
@@ -38,23 +38,26 @@ export const actions: Actions = {
 
 		let uploadResult;
 		try {
-			uploadResult = await uploadImage(imageFile, 'uicspacetime/physics/gallery');
-		} catch {
-			return fail(500, { error: 'Failed to upload image. Please try again.' });
+			uploadResult = await processAndStoreImage(imageFile);
+		} catch (err) {
+			const message = err instanceof Error ? err.message : 'Unknown error';
+			console.error('Gallery upload failed:', message);
+			return fail(500, { error: `Failed to upload image: ${message}` });
 		}
 
 		await db.insert(galleryImages).values({
 			url: uploadResult.url,
-			publicId: uploadResult.publicId,
+			thumbnailUrl: uploadResult.thumbnailUrl,
+			imageGroupId: uploadResult.groupId,
 			caption: parsed.data.caption || null,
 			clubType: 'physics',
 			photographer: parsed.data.photographer || null,
 			width: uploadResult.width,
 			height: uploadResult.height,
-			uploadedBy: locals.user?.id
+			uploadedBy: locals.member?.id
 		});
 
-		return { success: true };
+		return { success: true, action: 'upload' };
 	},
 
 	delete: async ({ request }) => {
@@ -65,28 +68,33 @@ export const actions: Actions = {
 			return fail(400, { error: 'Image ID is required.' });
 		}
 
-		const result = await db
-			.select()
-			.from(galleryImages)
-			.where(and(eq(galleryImages.id, id), eq(galleryImages.clubType, 'physics')))
-			.limit(1);
-
-		if (result.length === 0) {
-			return fail(404, { error: 'Image not found.' });
-		}
-
-		const image = result[0];
-
 		try {
-			await deleteImage(image.publicId);
-		} catch {
-			// Continue with deletion even if Cloudinary cleanup fails
+			const result = await db
+				.select()
+				.from(galleryImages)
+				.where(and(eq(galleryImages.id, id), eq(galleryImages.clubType, 'physics')))
+				.limit(1);
+
+			if (result.length === 0) {
+				return fail(404, { error: 'Image not found.' });
+			}
+
+			const image = result[0];
+
+			try {
+				await deleteImage(image.imageGroupId);
+			} catch {
+				// Continue with deletion even if image cleanup fails
+			}
+
+			await db
+				.delete(galleryImages)
+				.where(and(eq(galleryImages.id, id), eq(galleryImages.clubType, 'physics')));
+		} catch (err) {
+			console.error('Gallery delete failed:', err);
+			return fail(500, { error: 'Failed to delete image.' });
 		}
 
-		await db
-			.delete(galleryImages)
-			.where(and(eq(galleryImages.id, id), eq(galleryImages.clubType, 'physics')));
-
-		return { success: true };
+		return { success: true, action: 'delete' };
 	}
 };

@@ -1,13 +1,33 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { users } from '$lib/server/db/schema';
-import { verifyPassword, createSession, destroySession } from '$lib/server/auth';
+import { members } from '$lib/server/db/schema';
+import { verifyPassword, createMemberSession, destroyMemberSession } from '$lib/server/auth';
 import { loginSchema } from '$lib/utils/validation';
+import { getInterestBreakdown, getMembershipStats } from '$lib/server/db/queries';
+import { EVENT_PREFERENCES } from '$lib/utils/constants';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	return { user: locals.user };
+	if (!locals.member?.adminRole) {
+		return { member: locals.member };
+	}
+
+	const [interestResult, membershipStats] = await Promise.all([
+		getInterestBreakdown(),
+		getMembershipStats()
+	]);
+
+	const interestMap = new Map(interestResult.interests.map((i) => [i.preference, i]));
+	const allInterests = EVENT_PREFERENCES.map((pref) =>
+		interestMap.get(pref) ?? { preference: pref, total: 0, astronomyCount: 0, physicsCount: 0 }
+	);
+
+	return {
+		member: locals.member,
+		interestBreakdown: allInterests,
+		membershipStats
+	};
 };
 
 export const actions: Actions = {
@@ -24,24 +44,29 @@ export const actions: Actions = {
 
 		const result = await db
 			.select()
-			.from(users)
-			.where(eq(users.email, email))
+			.from(members)
+			.where(eq(members.email, email.toLowerCase().trim()))
 			.limit(1);
 
 		if (result.length === 0) {
 			return fail(400, { error: 'Invalid email or password' });
 		}
 
-		const user = result[0];
-		const valid = await verifyPassword(password, user.passwordHash);
+		const member = result[0];
+
+		if (!member.adminRole) {
+			return fail(400, { error: 'Invalid email or password' });
+		}
+
+		const valid = await verifyPassword(password, member.passwordHash);
 
 		if (!valid) {
 			return fail(400, { error: 'Invalid email or password' });
 		}
 
-		const token = await createSession(user.id);
+		const token = await createMemberSession(member.id);
 
-		cookies.set('session', token, {
+		cookies.set('member_session', token, {
 			path: '/',
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
@@ -53,10 +78,10 @@ export const actions: Actions = {
 	},
 
 	logout: async ({ cookies }) => {
-		const token = cookies.get('session');
+		const token = cookies.get('member_session');
 		if (token) {
-			await destroySession(token);
-			cookies.delete('session', { path: '/' });
+			await destroyMemberSession(token);
+			cookies.delete('member_session', { path: '/' });
 		}
 		throw redirect(303, '/admin');
 	}

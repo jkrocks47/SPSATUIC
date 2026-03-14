@@ -11,11 +11,11 @@
 	<div class="max-w-5xl mx-auto">
 		<!-- Header -->
 		<div class="mb-16 text-center">
-			<p class="font-mono text-xs tracking-[0.3em] text-astro-indigo/80 mb-4">WHO WE ARE</p>
+			<p class="font-mono text-xs tracking-[0.3em] text-astro-indigo/80 mb-4">{data.content['page-subtitle'] ?? 'WHO WE ARE'}</p>
 			<h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-astro-cream chromatic-text">
-				ABOUT
+				{data.content['page-title'] ?? 'ABOUT'}
 			</h1>
-			<p class="font-body text-lg text-astro-cream/50 mt-4">UIC Astronomy Club</p>
+			<p class="font-body text-lg text-astro-cream/50 mt-4">{data.content['page-description'] ?? 'UIC Astronomy Club'}</p>
 			<div class="mt-4 mx-auto w-24 h-px bg-gradient-to-r from-transparent via-astro-indigo to-transparent"></div>
 		</div>
 
@@ -88,11 +88,7 @@
 		<GlassPanel class="p-8 sm:p-12">
 			<h2 class="font-display text-2xl font-bold text-astro-cream mb-6">History</h2>
 			<p class="font-body text-base text-astro-cream/70 leading-relaxed">
-				Founded by a small group of passionate students, the UIC Astronomy Club has grown into one
-				of the most active science organizations on campus. Over the years, we have hosted star parties,
-				partnered with the Adler Planetarium, and participated in national astronomy events. Our
-				community continues to grow as we inspire the next generation of astronomers and space
-				enthusiasts.
+				{data.content['history-body'] ?? 'Founded by a small group of passionate students, the UIC Astronomy Club has grown into one of the most active science organizations on campus. Over the years, we have hosted star parties, partnered with the Adler Planetarium, and participated in national astronomy events. Our community continues to grow as we inspire the next generation of astronomers and space enthusiasts.'}
 			</p>
 		</GlassPanel>
 	</div>

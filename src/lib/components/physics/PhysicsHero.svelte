@@ -1,4 +1,12 @@
 <script lang="ts">
+	interface Props {
+		heroTitle?: string;
+		heroSubtitle?: string;
+		heroCta?: string;
+	}
+
+	let { heroTitle, heroSubtitle, heroCta }: Props = $props();
+
 	// Decorative circles data
 	const circles = [
 		{ cx: '85%', cy: '20%', r: 120, opacity: 0.06 },
@@ -39,20 +47,23 @@
 				Society of Physics Students at UIC
 			</p>
 			<h1 class="font-display text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-physics-dark leading-[1.1]">
-				EXPLORE.<br />
-				DISCOVER.<br />
-				UNDERSTAND.
+				{#if heroTitle}
+					{heroTitle}
+				{:else}
+					EXPLORE.<br />
+					DISCOVER.<br />
+					UNDERSTAND.
+				{/if}
 			</h1>
 			<p class="font-body text-lg text-physics-dark/60 mt-8 max-w-xl leading-relaxed">
-				We are a community of curious minds dedicated to understanding the fundamental principles
-				that govern our universe. From quantum mechanics to astrophysics, we explore it all.
+				{heroSubtitle ?? 'We are a community of curious minds dedicated to understanding the fundamental principles that govern our universe. From quantum mechanics to astrophysics, we explore it all.'}
 			</p>
 			<div class="mt-10 flex flex-wrap gap-4">
 				<a
 					href="/physics/events"
 					class="inline-flex items-center px-8 py-3 bg-physics-blue text-white font-body text-sm font-medium rounded-full hover:bg-physics-blue/90 transition-colors no-underline"
 				>
-					View Events
+					{heroCta ?? 'View Events'}
 				</a>
 				<a
 					href="/physics/about"

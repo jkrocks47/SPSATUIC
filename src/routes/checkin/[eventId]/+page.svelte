@@ -16,6 +16,9 @@
 			<h2>Checked In!</h2>
 			<p class="event-name">{data.event.title}</p>
 			<p class="event-date">{data.event.date}</p>
+			{#if data.joinedClub}
+				<p class="joined-club">You've joined the {data.event.clubType === 'astronomy' ? 'Astronomy' : 'Physics'} Club!</p>
+			{/if}
 			<p class="message">You've been successfully checked in. Enjoy the event!</p>
 		{:else if data.alreadyCheckedIn}
 			<div class="icon info-icon">&#8505;</div>
@@ -89,6 +92,17 @@
 	.event-date {
 		font-size: 0.8rem;
 		color: #6b7280;
+		margin-bottom: 0.75rem;
+	}
+
+	.joined-club {
+		font-size: 0.85rem;
+		font-weight: 500;
+		color: #22c55e;
+		background: rgba(34, 197, 94, 0.1);
+		border: 1px solid rgba(34, 197, 94, 0.2);
+		border-radius: 0.375rem;
+		padding: 0.5rem 0.75rem;
 		margin-bottom: 0.75rem;
 	}
 

@@ -1,10 +1,43 @@
 <script lang="ts">
+	import type { RsvpStatus } from '$lib/utils/constants';
+
 	let { data } = $props();
 
 	let progressPercent = $derived(
 		Math.min(100, (data.eventsAttended / data.activeThreshold) * 100)
 	);
 	let isActive = $derived(data.eventsAttended >= data.activeThreshold);
+
+	let rsvpStatuses = $state<Record<string, RsvpStatus | null>>({});
+	let rsvpLoading = $state<Record<string, boolean>>({});
+
+	function getStatus(eventId: string, original: string | null): RsvpStatus | null {
+		return rsvpStatuses[eventId] ?? (original as RsvpStatus | null);
+	}
+
+	async function changeRsvp(eventId: string, newStatus: RsvpStatus) {
+		if (rsvpLoading[eventId]) return;
+		rsvpLoading[eventId] = true;
+
+		try {
+			const res = await fetch('/api/member/rsvp', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ eventId, status: newStatus })
+			});
+			if (res.ok) {
+				rsvpStatuses[eventId] = newStatus;
+			}
+		} finally {
+			rsvpLoading[eventId] = false;
+		}
+	}
+
+	let expandedRsvp = $state<string | null>(null);
+
+	function toggleRsvpPicker(eventId: string) {
+		expandedRsvp = expandedRsvp === eventId ? null : eventId;
+	}
 </script>
 
 <svelte:head>
@@ -13,6 +46,22 @@
 
 <div class="dashboard-overview">
 	<h1 class="page-title">Welcome, {data.member.firstName}</h1>
+
+	{#if data.needsPreferenceReview}
+		<div class="review-banner">
+			<span>It's been a while! Help us plan better events by reviewing your interests.</span>
+			<a href="/dashboard/profile" class="review-btn">Update Interests &rarr;</a>
+		</div>
+	{/if}
+
+	{#if data.member.adminRole}
+		<a href="/admin" class="admin-link">Go to Admin Panel &rarr;</a>
+	{/if}
+
+	<div class="club-links">
+		<a href="/astronomy" class="club-link astro-link">Astronomy Club &rarr;</a>
+		<a href="/physics" class="club-link phys-link">Physics Club &rarr;</a>
+	</div>
 
 	<!-- Stats cards -->
 	<div class="stats-grid">
@@ -46,6 +95,20 @@
 		</div>
 	</div>
 
+	<!-- Interests -->
+	<section class="section">
+		<h2 class="section-title">Your Interests</h2>
+		{#if data.eventPreferences.length === 0}
+			<p class="empty">No interests selected. <a href="/dashboard/profile">Update your profile</a> to add some.</p>
+		{:else}
+			<div class="interests-list">
+				{#each data.eventPreferences as interest}
+					<span class="interest-tag">{interest}</span>
+				{/each}
+			</div>
+		{/if}
+	</section>
+
 	<!-- Upcoming RSVP'd events -->
 	<section class="section">
 		<h2 class="section-title">Upcoming Events</h2>
@@ -54,16 +117,51 @@
 		{:else}
 			<div class="event-list">
 				{#each data.upcomingRsvps as rsvp}
-					<a href="/{rsvp.clubType}/events/{rsvp.eventId}" class="event-row">
-						<div class="event-info">
-							<span class="event-title">{rsvp.title}</span>
-							<span class="event-meta">{rsvp.date}{rsvp.time ? ` at ${rsvp.time}` : ''} &middot; {rsvp.location || 'TBD'}</span>
+					{@const currentStatus = getStatus(rsvp.eventId, rsvp.rsvpStatus)}
+					<div class="event-card">
+						<a href="/{rsvp.clubType}/events/{rsvp.eventId}" class="event-row">
+							<div class="event-info">
+								<span class="event-title">{rsvp.title}</span>
+								<span class="event-meta">{rsvp.date}{rsvp.time ? ` at ${rsvp.time}` : ''} &middot; {rsvp.location || 'TBD'}</span>
+							</div>
+							<div class="event-badges">
+								<span class="club-mini" class:astro={rsvp.clubType === 'astronomy'} class:phys={rsvp.clubType === 'physics'}>{rsvp.clubType}</span>
+							</div>
+						</a>
+						<div class="rsvp-controls">
+							{#if expandedRsvp === rsvp.eventId}
+								<div class="rsvp-picker">
+									<button
+										class="rsvp-opt going"
+										class:active={currentStatus === 'going'}
+										disabled={rsvpLoading[rsvp.eventId]}
+										onclick={() => { changeRsvp(rsvp.eventId, 'going'); expandedRsvp = null; }}
+									>Going</button>
+									<button
+										class="rsvp-opt maybe"
+										class:active={currentStatus === 'maybe'}
+										disabled={rsvpLoading[rsvp.eventId]}
+										onclick={() => { changeRsvp(rsvp.eventId, 'maybe'); expandedRsvp = null; }}
+									>Maybe</button>
+									<button
+										class="rsvp-opt not-going"
+										class:active={currentStatus === 'not_going'}
+										disabled={rsvpLoading[rsvp.eventId]}
+										onclick={() => { changeRsvp(rsvp.eventId, 'not_going'); expandedRsvp = null; }}
+									>Not Going</button>
+								</div>
+							{:else}
+								<button
+									class="rsvp-badge-btn"
+									class:going={currentStatus === 'going'}
+									class:maybe={currentStatus === 'maybe'}
+									class:not-going={currentStatus === 'not_going'}
+									onclick={() => toggleRsvpPicker(rsvp.eventId)}
+									title="Change RSVP"
+								>{currentStatus?.replace('_', ' ') ?? 'RSVP'}</button>
+							{/if}
 						</div>
-						<div class="event-badges">
-							<span class="club-mini" class:astro={rsvp.clubType === 'astronomy'} class:phys={rsvp.clubType === 'physics'}>{rsvp.clubType}</span>
-							<span class="rsvp-badge" class:going={rsvp.rsvpStatus === 'going'} class:maybe={rsvp.rsvpStatus === 'maybe'}>{rsvp.rsvpStatus?.replace('_', ' ')}</span>
-						</div>
-					</a>
+					</div>
 				{/each}
 			</div>
 		{/if}
@@ -93,6 +191,61 @@
 <style>
 	.dashboard-overview {
 		max-width: 800px;
+	}
+
+	.admin-link {
+		display: inline-block;
+		margin-bottom: 1.5rem;
+		padding: 0.5rem 1rem;
+		background: rgba(79, 70, 229, 0.2);
+		border: 1px solid rgba(79, 70, 229, 0.4);
+		border-radius: 0.5rem;
+		color: #c4b5fd;
+		text-decoration: none;
+		font-size: 0.85rem;
+		font-weight: 500;
+		transition: background 0.15s;
+	}
+
+	.admin-link:hover {
+		background: rgba(79, 70, 229, 0.35);
+	}
+
+	.club-links {
+		display: flex;
+		gap: 0.75rem;
+		margin-bottom: 1.5rem;
+		flex-wrap: wrap;
+	}
+
+	.club-link {
+		display: inline-block;
+		padding: 0.5rem 1rem;
+		border-radius: 0.5rem;
+		text-decoration: none;
+		font-size: 0.85rem;
+		font-weight: 500;
+		transition: background 0.15s;
+	}
+
+	.astro-link {
+		background: rgba(79, 70, 229, 0.15);
+		border: 1px solid rgba(79, 70, 229, 0.3);
+		color: #a5b4fc;
+	}
+
+	.astro-link:hover {
+		background: rgba(79, 70, 229, 0.3);
+	}
+
+	.phys-link {
+		background: rgba(14, 121, 178, 0.15);
+		border: 1px solid rgba(14, 121, 178, 0.3);
+		color: #7dd3fc;
+	}
+
+	.phys-link:hover {
+		background: rgba(14, 121, 178, 0.3);
 	}
 
 	.page-title {
@@ -259,14 +412,120 @@
 	.club-mini.astro { background: rgba(79, 70, 229, 0.2); color: #a5b4fc; }
 	.club-mini.phys { background: rgba(14, 121, 178, 0.2); color: #7dd3fc; }
 
-	.rsvp-badge {
-		font-size: 0.65rem;
-		font-weight: 500;
-		padding: 0.15rem 0.45rem;
-		border-radius: 9999px;
-		text-transform: capitalize;
+	.event-card {
+		background: #191923;
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: 0.5rem;
+		overflow: hidden;
 	}
 
-	.rsvp-badge.going { background: rgba(34, 197, 94, 0.15); color: #86efac; }
-	.rsvp-badge.maybe { background: rgba(234, 179, 8, 0.15); color: #fde047; }
+	.event-card .event-row {
+		border: none;
+		background: none;
+		border-radius: 0;
+	}
+
+	.rsvp-controls {
+		padding: 0 1rem 0.65rem;
+	}
+
+	.rsvp-badge-btn {
+		font-size: 0.65rem;
+		font-weight: 500;
+		padding: 0.2rem 0.55rem;
+		border-radius: 9999px;
+		text-transform: capitalize;
+		cursor: pointer;
+		border: 1px solid transparent;
+		transition: all 0.15s;
+		background: rgba(255, 255, 255, 0.05);
+		color: rgba(255, 255, 255, 0.5);
+	}
+
+	.rsvp-badge-btn:hover {
+		border-color: rgba(255, 255, 255, 0.15);
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	.rsvp-badge-btn.going { background: rgba(34, 197, 94, 0.15); color: #86efac; border-color: rgba(34, 197, 94, 0.25); }
+	.rsvp-badge-btn.maybe { background: rgba(234, 179, 8, 0.15); color: #fde047; border-color: rgba(234, 179, 8, 0.25); }
+	.rsvp-badge-btn.not-going { background: rgba(220, 38, 38, 0.1); color: #fca5a5; border-color: rgba(220, 38, 38, 0.2); }
+
+	.rsvp-picker {
+		display: flex;
+		gap: 0.35rem;
+	}
+
+	.rsvp-opt {
+		font-size: 0.65rem;
+		font-weight: 500;
+		padding: 0.2rem 0.55rem;
+		border-radius: 9999px;
+		cursor: pointer;
+		transition: all 0.15s;
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		color: rgba(255, 255, 255, 0.5);
+	}
+
+	.rsvp-opt:hover:not(:disabled) {
+		color: rgba(255, 255, 255, 0.9);
+		border-color: rgba(255, 255, 255, 0.2);
+	}
+
+	.rsvp-opt:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.rsvp-opt.going.active { background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.5); color: #86efac; }
+	.rsvp-opt.maybe.active { background: rgba(234, 179, 8, 0.2); border-color: rgba(234, 179, 8, 0.5); color: #fde047; }
+	.rsvp-opt.not-going.active { background: rgba(220, 38, 38, 0.15); border-color: rgba(220, 38, 38, 0.4); color: #fca5a5; }
+
+	.interests-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.interest-tag {
+		font-size: 0.75rem;
+		font-weight: 500;
+		padding: 0.3rem 0.7rem;
+		border-radius: 9999px;
+		background: rgba(79, 70, 229, 0.12);
+		border: 1px solid rgba(79, 70, 229, 0.25);
+		color: #c4b5fd;
+	}
+
+	.review-banner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.75rem 1rem;
+		background: rgba(234, 179, 8, 0.1);
+		border: 1px solid rgba(234, 179, 8, 0.25);
+		border-radius: 0.5rem;
+		margin-bottom: 1.25rem;
+		font-size: 0.85rem;
+		color: #fde68a;
+	}
+
+	.review-btn {
+		white-space: nowrap;
+		padding: 0.35rem 0.75rem;
+		background: rgba(234, 179, 8, 0.2);
+		border: 1px solid rgba(234, 179, 8, 0.35);
+		border-radius: 0.375rem;
+		color: #fde68a;
+		text-decoration: none;
+		font-size: 0.8rem;
+		font-weight: 500;
+		transition: background 0.15s;
+	}
+
+	.review-btn:hover {
+		background: rgba(234, 179, 8, 0.35);
+	}
 </style>

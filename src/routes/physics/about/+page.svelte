@@ -10,11 +10,11 @@
 	<div class="max-w-5xl mx-auto">
 		<!-- Header -->
 		<div class="mb-12">
-			<p class="font-body text-sm tracking-widest text-physics-blue/70 uppercase mb-2">Who we are</p>
+			<p class="font-body text-sm tracking-widest text-physics-blue/70 uppercase mb-2">{data.content['page-subtitle'] ?? 'Who we are'}</p>
 			<h1 class="font-display text-4xl sm:text-5xl font-bold tracking-tight text-physics-dark">
-				About SPS
+				{data.content['page-title'] ?? 'About SPS'}
 			</h1>
-			<p class="font-body text-lg text-physics-dark/50 mt-3">Society of Physics Students at UIC</p>
+			<p class="font-body text-lg text-physics-dark/50 mt-3">{data.content['page-description'] ?? 'Society of Physics Students at UIC'}</p>
 			<div class="mt-4 w-16 h-0.5 bg-physics-blue/30"></div>
 		</div>
 
@@ -87,11 +87,7 @@
 		<div class="bg-white rounded-2xl border border-gray-100 p-8 sm:p-12">
 			<h2 class="font-display text-2xl font-bold text-physics-dark mb-4">History</h2>
 			<p class="font-body text-base text-physics-dark/60 leading-relaxed">
-				Our chapter of the Society of Physics Students has been active at UIC for decades,
-				fostering a community of curious minds and future physicists. We have hosted distinguished
-				speakers, organized trips to national laboratories like Fermilab and Argonne, and supported
-				students in their academic and research pursuits. Our alumni have gone on to careers in
-				academia, industry, and beyond.
+				{data.content['history-body'] ?? 'Our chapter of the Society of Physics Students has been active at UIC for decades, fostering a community of curious minds and future physicists. We have hosted distinguished speakers, organized trips to national laboratories like Fermilab and Argonne, and supported students in their academic and research pursuits. Our alumni have gone on to careers in academia, industry, and beyond.'}
 			</p>
 		</div>
 	</div>

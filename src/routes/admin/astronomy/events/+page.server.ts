@@ -4,7 +4,8 @@ import { eq, desc, and, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { events, eventRsvps, eventCheckins } from '$lib/server/db/schema';
 import { eventSchema } from '$lib/utils/validation';
-import { uploadImage, deleteImage } from '$lib/server/cloudinary';
+import { processAndStoreImage, deleteImage } from '$lib/server/images';
+import { getBatchEstimatedTurnout, getHistoricalTurnoutRate, getInterestBreakdown } from '$lib/server/db/queries';
 import type { Actions, PageServerLoad } from './$types';
 
 function generateCheckinCode(): string {
@@ -58,13 +59,22 @@ export const load: PageServerLoad = async () => {
 		checkinMap[row.eventId] = Number(row.count);
 	}
 
+	const turnoutMap = await getBatchEstimatedTurnout(eventIds);
+	const historicalRate = await getHistoricalTurnoutRate('astronomy');
+
 	const eventsWithStats = allEvents.map((e) => ({
 		...e,
 		rsvpCounts: rsvpMap[e.id] || { going: 0, maybe: 0, not_going: 0 },
-		attendanceCount: checkinMap[e.id] || 0
+		attendanceCount: checkinMap[e.id] || 0,
+		estimatedTurnout: turnoutMap.get(e.id) ?? 0
 	}));
 
-	return { events: eventsWithStats };
+	const interestResult = await getInterestBreakdown();
+	const interestData = interestResult.interests
+		.map((i) => ({ preference: i.preference, count: i.astronomyCount }))
+		.sort((a, b) => b.count - a.count);
+
+	return { events: eventsWithStats, historicalRate, interestData, activeMemberCount: interestResult.activeMemberCount };
 };
 
 export const actions: Actions = {
@@ -91,16 +101,18 @@ export const actions: Actions = {
 		}
 
 		let imageUrl: string | null = null;
-		let imagePublicId: string | null = null;
+		let imageGroupId: string | null = null;
 
 		const imageFile = formData.get('image') as File | null;
 		if (imageFile && imageFile.size > 0) {
 			try {
-				const result = await uploadImage(imageFile, 'uicspacetime/astronomy/events');
+				const result = await processAndStoreImage(imageFile);
 				imageUrl = result.url;
-				imagePublicId = result.publicId;
-			} catch {
-				return fail(500, { error: 'Failed to upload image. Please try again.' });
+				imageGroupId = result.groupId;
+			} catch (err) {
+				const message = err instanceof Error ? err.message : 'Unknown error';
+				console.error('Event image upload failed:', message);
+				return fail(500, { error: `Failed to upload image: ${message}` });
 			}
 		}
 
@@ -113,11 +125,11 @@ export const actions: Actions = {
 			locationUrl: parsed.data.locationUrl || null,
 			clubType: 'astronomy',
 			imageUrl,
-			imagePublicId,
+			imageGroupId,
 			isPublished: parsed.data.isPublished,
 			maxAttendees: parsed.data.maxAttendees || null,
 			checkinCode: generateCheckinCode(),
-			createdBy: locals.user?.id
+			createdBy: locals.member?.id
 		});
 
 		return { success: true };
@@ -203,9 +215,9 @@ export const actions: Actions = {
 		if (result.length === 0) return fail(404, { error: 'Event not found.' });
 
 		const event = result[0];
-		if (event.imagePublicId) {
+		if (event.imageGroupId) {
 			try {
-				await deleteImage(event.imagePublicId);
+				await deleteImage(event.imageGroupId);
 			} catch {
 				// Continue
 			}

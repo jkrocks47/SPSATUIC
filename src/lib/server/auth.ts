@@ -3,21 +3,12 @@ import bcrypt from 'bcryptjs';
 import { eq, and, gt } from 'drizzle-orm';
 import { db } from './db';
 import {
-	sessions,
-	users,
 	members,
 	memberSessions,
 	emailVerificationTokens,
 	passwordResetTokens
 } from './db/schema';
 import type { Role, MemberRole } from '$lib/utils/constants';
-
-export interface SessionUser {
-	id: string;
-	email: string;
-	name: string;
-	role: Role;
-}
 
 export interface MemberUser {
 	id: string;
@@ -26,6 +17,7 @@ export interface MemberUser {
 	lastName: string;
 	displayName: string;
 	role: MemberRole;
+	adminRole: Role | null;
 	emailVerified: boolean;
 	astronomyMember: boolean;
 	physicsMember: boolean;
@@ -43,65 +35,6 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
 	return bcrypt.compare(password, hash);
-}
-
-// --- Admin Sessions (unchanged) ---
-
-export async function createSession(userId: string): Promise<string> {
-	const token = randomBytes(32).toString('hex');
-	const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
-
-	await db.insert(sessions).values({
-		id: token,
-		userId,
-		expiresAt
-	});
-
-	return token;
-}
-
-export async function validateSession(token: string): Promise<SessionUser | null> {
-	const result = await db
-		.select({
-			sessionId: sessions.id,
-			expiresAt: sessions.expiresAt,
-			userId: users.id,
-			email: users.email,
-			name: users.name,
-			role: users.role
-		})
-		.from(sessions)
-		.innerJoin(users, eq(sessions.userId, users.id))
-		.where(eq(sessions.id, token))
-		.limit(1);
-
-	if (result.length === 0) return null;
-
-	const session = result[0];
-
-	if (session.expiresAt < new Date()) {
-		await db.delete(sessions).where(eq(sessions.id, token));
-		return null;
-	}
-
-	// Sliding window: extend session if more than halfway through
-	const halfLife = SESSION_DURATION_MS / 2;
-	const timeRemaining = session.expiresAt.getTime() - Date.now();
-	if (timeRemaining < halfLife) {
-		const newExpiry = new Date(Date.now() + SESSION_DURATION_MS);
-		await db.update(sessions).set({ expiresAt: newExpiry }).where(eq(sessions.id, token));
-	}
-
-	return {
-		id: session.userId,
-		email: session.email,
-		name: session.name,
-		role: session.role
-	};
-}
-
-export async function destroySession(token: string): Promise<void> {
-	await db.delete(sessions).where(eq(sessions.id, token));
 }
 
 // --- Member Sessions ---
@@ -130,6 +63,7 @@ export async function validateMemberSession(token: string): Promise<MemberUser |
 			lastName: members.lastName,
 			displayName: members.displayName,
 			role: members.role,
+			adminRole: members.adminRole,
 			emailVerified: members.emailVerified,
 			astronomyMember: members.astronomyMember,
 			physicsMember: members.physicsMember
@@ -166,6 +100,7 @@ export async function validateMemberSession(token: string): Promise<MemberUser |
 		lastName: session.lastName,
 		displayName: session.displayName,
 		role: session.role,
+		adminRole: session.adminRole,
 		emailVerified: session.emailVerified,
 		astronomyMember: session.astronomyMember,
 		physicsMember: session.physicsMember

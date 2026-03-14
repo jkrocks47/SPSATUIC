@@ -3,14 +3,19 @@
 
 	let { data, form } = $props();
 
-	let user = $derived(data.user);
+	let member = $derived(data.member);
+	let interestBreakdown = $derived(data.interestBreakdown ?? []);
+	let membershipStats = $derived(data.membershipStats);
+	let sortedByTotal = $derived([...interestBreakdown].sort((a, b) => b.total - a.total));
+	let maxCount = $derived(sortedByTotal.length > 0 ? sortedByTotal[0].total : 1);
+	let topInterest = $derived(sortedByTotal.length > 0 ? sortedByTotal[0] : null);
 </script>
 
 <svelte:head>
-	<title>{user ? 'Admin Dashboard' : 'Admin Login'} - UICSpacetime</title>
+	<title>{member?.adminRole ? 'Admin Dashboard' : 'Admin Login'} - UICSpacetime</title>
 </svelte:head>
 
-{#if !user}
+{#if !member?.adminRole}
 	<!-- Login Form -->
 	<div class="login-container">
 		<div class="login-card">
@@ -57,8 +62,69 @@
 {:else}
 	<!-- Dashboard -->
 	<div class="dashboard">
-		<h1 class="dashboard-title">Welcome, {user.name}</h1>
+		<h1 class="dashboard-title">Welcome, {member.firstName}</h1>
 		<p class="dashboard-subtitle">Manage your club content from here.</p>
+
+		{#if membershipStats}
+			<div class="stats-grid">
+				<div class="stat-card">
+					<span class="stat-value">{membershipStats.totalMembers}</span>
+					<span class="stat-label">Total Members</span>
+				</div>
+				<div class="stat-card">
+					<span class="stat-value astro">{membershipStats.astronomyMembers}</span>
+					<span class="stat-label">Astronomy</span>
+				</div>
+				<div class="stat-card">
+					<span class="stat-value phys">{membershipStats.physicsMembers}</span>
+					<span class="stat-label">Physics</span>
+				</div>
+				<div class="stat-card">
+					<span class="stat-value pref">{membershipStats.membersWithPreferences}</span>
+					<span class="stat-label">With Preferences</span>
+				</div>
+			</div>
+
+			<div class="interest-section">
+				<div class="section-header">
+					<h2 class="section-title">Interest Breakdown</h2>
+					<span class="section-hint">What members want — plan events around these</span>
+				</div>
+
+				<div class="interest-bars">
+					{#each sortedByTotal as interest}
+						<div class="interest-row">
+							<div class="interest-label">
+								<span class="interest-name">{interest.preference}</span>
+								<span class="interest-count">{interest.total}</span>
+							</div>
+							<div class="bar-track">
+								<div
+									class="bar-fill"
+									style="width: {maxCount > 0 ? (interest.total / maxCount) * 100 : 0}%"
+								></div>
+							</div>
+							<div class="interest-clubs">
+								<span class="mini-badge astro" title="Astronomy members">{interest.astronomyCount}</span>
+								<span class="mini-badge phys" title="Physics members">{interest.physicsCount}</span>
+							</div>
+						</div>
+					{/each}
+				</div>
+
+				{#if topInterest && topInterest.total > 0}
+					<div class="insight-callout">
+						<strong>Top interest:</strong> {topInterest.preference} ({topInterest.total} members).
+						{#if sortedByTotal.length > 1}
+							Consider planning more {topInterest.preference.toLowerCase()} events.
+							{#if sortedByTotal[sortedByTotal.length - 1].total === 0}
+								"{sortedByTotal[sortedByTotal.length - 1].preference}" has no interest — consider removing it from registration.
+							{/if}
+						{/if}
+					</div>
+				{/if}
+			</div>
+		{/if}
 
 		<div class="dashboard-cards">
 			<a href="/admin/astronomy" class="dash-card astronomy-card">
@@ -245,5 +311,151 @@
 
 	.physics-card .card-link {
 		color: #0e79b2;
+	}
+
+	/* Stats Grid */
+	.stats-grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 1rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.stat-card {
+		background: #fff;
+		border: 1px solid #e5e7eb;
+		border-radius: 0.5rem;
+		padding: 1.25rem;
+		text-align: center;
+	}
+
+	.stat-value {
+		display: block;
+		font-family: 'Space Grotesk', sans-serif;
+		font-size: 1.75rem;
+		font-weight: 700;
+		color: #191923;
+	}
+
+	.stat-value.astro { color: #4f46e5; }
+	.stat-value.phys { color: #0e79b2; }
+	.stat-value.pref { color: #7c3aed; }
+
+	.stat-label {
+		font-size: 0.75rem;
+		color: #6b7280;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin-top: 0.25rem;
+		display: block;
+	}
+
+	/* Interest Section */
+	.interest-section {
+		background: #fff;
+		border: 1px solid #e5e7eb;
+		border-radius: 0.75rem;
+		padding: 1.5rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.section-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		margin-bottom: 1.25rem;
+	}
+
+	.section-title {
+		font-family: 'Space Grotesk', sans-serif;
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: #191923;
+	}
+
+	.section-hint {
+		font-size: 0.75rem;
+		color: #9ca3af;
+	}
+
+	.interest-bars {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+	}
+
+	.interest-row {
+		display: grid;
+		grid-template-columns: 140px 1fr 60px;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.interest-label {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.interest-name {
+		font-size: 0.85rem;
+		color: #374151;
+		font-weight: 500;
+	}
+
+	.interest-count {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: #4f46e5;
+	}
+
+	.bar-track {
+		height: 0.5rem;
+		background: #f3f4f6;
+		border-radius: 9999px;
+		overflow: hidden;
+	}
+
+	.bar-fill {
+		height: 100%;
+		background: #4f46e5;
+		border-radius: 9999px;
+		transition: width 0.3s ease;
+		min-width: 2px;
+	}
+
+	.interest-clubs {
+		display: flex;
+		gap: 0.25rem;
+	}
+
+	.mini-badge {
+		font-size: 0.6rem;
+		font-weight: 600;
+		padding: 0.1rem 0.35rem;
+		border-radius: 9999px;
+		min-width: 1.2rem;
+		text-align: center;
+	}
+
+	.mini-badge.astro { background: #eef2ff; color: #4f46e5; }
+	.mini-badge.phys { background: #e0f2fe; color: #0e79b2; }
+
+	.insight-callout {
+		margin-top: 1rem;
+		padding: 0.75rem 1rem;
+		background: #f9fafb;
+		border: 1px solid #e5e7eb;
+		border-radius: 0.5rem;
+		font-size: 0.85rem;
+		color: #374151;
+		line-height: 1.5;
+	}
+
+	.insight-callout strong { color: #4f46e5; }
+
+	@media (max-width: 768px) {
+		.stats-grid { grid-template-columns: repeat(2, 1fr); }
+		.interest-row { grid-template-columns: 100px 1fr 50px; }
 	}
 </style>

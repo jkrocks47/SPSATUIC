@@ -16,7 +16,9 @@
 	{/if}
 
 	{#if form?.success}
-		<div class="success-message">Image uploaded successfully.</div>
+		<div class="success-message">
+			{form.action === 'delete' ? 'Image deleted successfully.' : 'Image uploaded successfully.'}
+		</div>
 	{/if}
 
 	<div class="upload-card">
@@ -36,6 +38,41 @@
 					<input type="text" id="photographer" name="photographer" />
 				</div>
 			</div>
+
+			<details class="metadata-section">
+				<summary>Astronomical Metadata (optional)</summary>
+				<div class="upload-grid">
+					<div class="form-group">
+						<label for="raCoord">Right Ascension</label>
+						<input type="text" id="raCoord" name="raCoord" placeholder="e.g. 12h 36m 49s" />
+					</div>
+					<div class="form-group">
+						<label for="decCoord">Declination</label>
+						<input type="text" id="decCoord" name="decCoord" placeholder="e.g. +62° 12' 58&quot;" />
+					</div>
+					<div class="form-group">
+						<label for="exposureTime">Exposure Time</label>
+						<input type="text" id="exposureTime" name="exposureTime" placeholder="e.g. 15m 30s" />
+					</div>
+					<div class="form-group">
+						<label for="equipment">Equipment</label>
+						<input type="text" id="equipment" name="equipment" placeholder="e.g. Celestron C8" />
+					</div>
+					<div class="form-group">
+						<label for="iso">ISO</label>
+						<input type="text" id="iso" name="iso" placeholder="e.g. 3200" />
+					</div>
+					<div class="form-group">
+						<label for="aperture">Aperture</label>
+						<input type="text" id="aperture" name="aperture" placeholder="e.g. f/2.8" />
+					</div>
+					<div class="form-group">
+						<label for="observationDate">Observation Date</label>
+						<input type="text" id="observationDate" name="observationDate" placeholder="e.g. 2025-11-15" />
+					</div>
+				</div>
+			</details>
+
 			<button type="submit" class="submit-btn">Upload</button>
 		</form>
 	</div>
@@ -47,7 +84,7 @@
 			{#each data.images as image}
 				<div class="image-card">
 					<div class="image-wrapper">
-						<img src={image.url} alt={image.caption || 'Gallery image'} loading="lazy" />
+						<img src={image.thumbnailUrl || image.url} alt={image.caption || 'Gallery image'} loading="lazy" />
 					</div>
 					<div class="image-info">
 						{#if image.caption}
@@ -148,6 +185,20 @@
 		outline: none;
 		border-color: #4f46e5;
 		box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+	}
+
+	.metadata-section {
+		grid-column: 1 / -1;
+		margin-top: 0.5rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.metadata-section summary {
+		font-size: 0.85rem;
+		font-weight: 500;
+		color: #6366f1;
+		cursor: pointer;
+		margin-bottom: 0.75rem;
 	}
 
 	.submit-btn {

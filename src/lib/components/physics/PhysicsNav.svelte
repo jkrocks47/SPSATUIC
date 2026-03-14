@@ -9,6 +9,7 @@
 		{ label: 'About', href: '/physics/about' },
 		{ label: 'Events', href: '/physics/events' },
 		{ label: 'Gallery', href: '/physics/gallery' },
+		{ label: 'Board', href: '/physics/board' },
 		{ label: 'Join', href: '/physics/join' },
 		{ label: 'Contact', href: '/physics/contact' }
 	];
@@ -33,11 +34,16 @@
 	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 		<div class="flex items-center justify-between h-16">
 			<!-- Logo -->
-			<a href="/physics" class="flex items-center gap-2 no-underline">
-				<span class="font-body text-lg font-semibold tracking-tight text-physics-dark">
-					UICSpacetime
-				</span>
-			</a>
+			<div class="flex items-center gap-3">
+				<a href="/" class="font-body text-sm text-physics-dark/60 hover:text-physics-blue transition-colors duration-200 no-underline">
+					← Spacetime
+				</a>
+				<a href="/physics" class="flex items-center gap-2 no-underline">
+					<span class="font-body text-lg font-semibold tracking-tight text-physics-dark">
+						Physics Club
+					</span>
+				</a>
+			</div>
 
 			<!-- Desktop Nav Links -->
 			<div class="hidden md:flex items-center gap-8">
@@ -49,12 +55,21 @@
 						{link.label}
 					</a>
 				{/each}
-				<a
-					href="/login?redirectTo={$page.url.pathname}"
-					class="font-body text-sm font-medium text-physics-blue border border-physics-blue/40 px-3 py-1.5 rounded hover:bg-physics-blue/10 hover:border-physics-blue/70 transition-all duration-200 no-underline"
-				>
-					Login
-				</a>
+				{#if $page.data.member}
+					<a
+						href="/dashboard"
+						class="font-body text-sm font-medium text-physics-blue border border-physics-blue/40 px-3 py-1.5 rounded hover:bg-physics-blue/10 hover:border-physics-blue/70 transition-all duration-200 no-underline"
+					>
+						Dashboard
+					</a>
+				{:else}
+					<a
+						href="/login?redirectTo={$page.url.pathname}"
+						class="font-body text-sm font-medium text-physics-blue border border-physics-blue/40 px-3 py-1.5 rounded hover:bg-physics-blue/10 hover:border-physics-blue/70 transition-all duration-200 no-underline"
+					>
+						Sign In / Join
+					</a>
+				{/if}
 			</div>
 
 			<!-- Mobile Hamburger -->
@@ -78,6 +93,13 @@
 		<!-- Mobile Menu -->
 		{#if mobileOpen}
 			<div class="md:hidden pb-4 border-t border-physics-dark/10 mt-2 pt-4 flex flex-col gap-4">
+				<a
+					href="/"
+					class="font-body text-sm text-physics-dark/60 hover:text-physics-blue transition-colors no-underline"
+					onclick={() => (mobileOpen = false)}
+				>
+					← Spacetime
+				</a>
 				{#each navLinks as link}
 					<a
 						href={link.href}
@@ -87,13 +109,23 @@
 						{link.label}
 					</a>
 				{/each}
-				<a
-					href="/login?redirectTo={$page.url.pathname}"
-					class="font-body text-sm text-physics-dark/60 hover:text-physics-blue transition-colors no-underline"
-					onclick={() => (mobileOpen = false)}
-				>
-					Login
-				</a>
+				{#if $page.data.member}
+					<a
+						href="/dashboard"
+						class="font-body text-sm text-physics-dark/60 hover:text-physics-blue transition-colors no-underline"
+						onclick={() => (mobileOpen = false)}
+					>
+						Dashboard
+					</a>
+				{:else}
+					<a
+						href="/login?redirectTo={$page.url.pathname}"
+						class="font-body text-sm text-physics-dark/60 hover:text-physics-blue transition-colors no-underline"
+						onclick={() => (mobileOpen = false)}
+					>
+						Sign In / Join
+					</a>
+				{/if}
 			</div>
 		{/if}
 	</div>

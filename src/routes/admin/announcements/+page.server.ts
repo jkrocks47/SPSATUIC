@@ -39,7 +39,7 @@ export const actions: Actions = {
 			isPinned: parsed.data.isPinned,
 			publishAt: parsed.data.publishAt ? new Date(parsed.data.publishAt) : null,
 			expiresAt: parsed.data.expiresAt ? new Date(parsed.data.expiresAt) : null,
-			createdBy: locals.user?.id
+			createdBy: locals.member?.id
 		});
 
 		return { success: true };

@@ -38,7 +38,11 @@
 				</h1>
 				<p class="sps-title">Society of Physics Students at UIC</p>
 			</div>
-			<a href="/login" class="login-link">Login</a>
+			{#if data.member}
+			<a href="/dashboard" class="login-link">Dashboard</a>
+		{:else}
+			<a href="/login" class="login-link">Sign In / Join</a>
+		{/if}
 		</div>
 
 		<nav class="club-nav">
@@ -80,7 +84,7 @@
 
 		<!-- Hero tagline -->
 		<div class="hero-tagline">
-			<p>Exploring the fundamental laws of the universe, one experiment at a time.</p>
+			<p>{data.content['hero-tagline'] ?? 'Exploring the fundamental laws of the universe, one experiment at a time.'}</p>
 			<div class="hero-divider" aria-hidden="true"></div>
 		</div>
 	</header>
@@ -94,8 +98,8 @@
 
 			<!-- Section header -->
 			<div class="sps-header">
-				<p class="sps-subtitle">SOCIETY OF PHYSICS STUDENTS</p>
-				<h2 class="sps-heading">About SPS at UIC</h2>
+				<p class="sps-subtitle">{data.content['about-subtitle'] ?? 'SOCIETY OF PHYSICS STUDENTS'}</p>
+				<h2 class="sps-heading">{data.content['about-heading'] ?? 'About SPS at UIC'}</h2>
 			</div>
 
 			<!-- Mission + Meetings side by side -->
@@ -154,12 +158,10 @@
 			<ScrollReveal delay={150}>
 				<div class="history-block">
 					<p class="history-lead">
-						Our chapter has been active at UIC for decades, fostering a community of curious minds and future physicists.
+						{data.content['history-lead'] ?? 'Our chapter has been active at UIC for decades, fostering a community of curious minds and future physicists.'}
 					</p>
 					<p class="section-text">
-						We have hosted distinguished speakers, organized trips to national laboratories like
-						Fermilab and Argonne, and supported students in their academic and research pursuits.
-						Our alumni have gone on to careers in academia, industry, and beyond.
+						{data.content['history-body'] ?? 'We have hosted distinguished speakers, organized trips to national laboratories like Fermilab and Argonne, and supported students in their academic and research pursuits. Our alumni have gone on to careers in academia, industry, and beyond.'}
 					</p>
 				</div>
 			</ScrollReveal>
@@ -186,18 +188,18 @@
 
 			<!-- Stats strip -->
 			<div class="stats-strip" aria-hidden="true">
-				<span>DECADES ACTIVE</span>
+				<span>{data.content['stats-1'] ?? 'DECADES ACTIVE'}</span>
 				<span class="stats-dot">&bull;</span>
-				<span>FERMILAB TRIPS</span>
+				<span>{data.content['stats-2'] ?? 'FERMILAB TRIPS'}</span>
 				<span class="stats-dot">&bull;</span>
-				<span>ALL MAJORS WELCOME</span>
+				<span>{data.content['stats-3'] ?? 'ALL MAJORS WELCOME'}</span>
 			</div>
 
 		</div>
 	</main>
 
 	<footer class="site-footer">
-		<p>SPS <span class="sep">+</span> UIC <span class="sep">+</span> CHICAGO <span class="sep">+</span> EST. 2010</p>
+		<p>{data.content['footer-text'] ?? 'SPS + UIC + CHICAGO + EST. 2010'}</p>
 	</footer>
 </div>
 

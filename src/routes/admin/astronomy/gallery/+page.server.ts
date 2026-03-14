@@ -3,7 +3,7 @@ import { eq, desc, and } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { galleryImages } from '$lib/server/db/schema';
 import { galleryImageSchema } from '$lib/utils/validation';
-import { uploadImage, deleteImage } from '$lib/server/cloudinary';
+import { processAndStoreImage, deleteImage } from '$lib/server/images';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
@@ -28,7 +28,14 @@ export const actions: Actions = {
 		const data = {
 			caption: (formData.get('caption') as string) || undefined,
 			photographer: (formData.get('photographer') as string) || undefined,
-			clubType: 'astronomy' as const
+			clubType: 'astronomy' as const,
+			raCoord: (formData.get('raCoord') as string) || undefined,
+			decCoord: (formData.get('decCoord') as string) || undefined,
+			exposureTime: (formData.get('exposureTime') as string) || undefined,
+			equipment: (formData.get('equipment') as string) || undefined,
+			iso: (formData.get('iso') as string) || undefined,
+			aperture: (formData.get('aperture') as string) || undefined,
+			observationDate: (formData.get('observationDate') as string) || undefined
 		};
 
 		const parsed = galleryImageSchema.safeParse(data);
@@ -38,23 +45,33 @@ export const actions: Actions = {
 
 		let uploadResult;
 		try {
-			uploadResult = await uploadImage(imageFile, 'uicspacetime/astronomy/gallery');
-		} catch {
-			return fail(500, { error: 'Failed to upload image. Please try again.' });
+			uploadResult = await processAndStoreImage(imageFile);
+		} catch (err) {
+			const message = err instanceof Error ? err.message : 'Unknown error';
+			console.error('Gallery upload failed:', message);
+			return fail(500, { error: `Failed to upload image: ${message}` });
 		}
 
 		await db.insert(galleryImages).values({
 			url: uploadResult.url,
-			publicId: uploadResult.publicId,
+			thumbnailUrl: uploadResult.thumbnailUrl,
+			imageGroupId: uploadResult.groupId,
 			caption: parsed.data.caption || null,
 			clubType: 'astronomy',
 			photographer: parsed.data.photographer || null,
 			width: uploadResult.width,
 			height: uploadResult.height,
-			uploadedBy: locals.user?.id
+			raCoord: parsed.data.raCoord || null,
+			decCoord: parsed.data.decCoord || null,
+			exposureTime: parsed.data.exposureTime || null,
+			equipment: parsed.data.equipment || null,
+			iso: parsed.data.iso || null,
+			aperture: parsed.data.aperture || null,
+			observationDate: parsed.data.observationDate || null,
+			uploadedBy: locals.member?.id
 		});
 
-		return { success: true };
+		return { success: true, action: 'upload' };
 	},
 
 	delete: async ({ request }) => {
@@ -65,28 +82,33 @@ export const actions: Actions = {
 			return fail(400, { error: 'Image ID is required.' });
 		}
 
-		const result = await db
-			.select()
-			.from(galleryImages)
-			.where(and(eq(galleryImages.id, id), eq(galleryImages.clubType, 'astronomy')))
-			.limit(1);
-
-		if (result.length === 0) {
-			return fail(404, { error: 'Image not found.' });
-		}
-
-		const image = result[0];
-
 		try {
-			await deleteImage(image.publicId);
-		} catch {
-			// Continue with deletion even if Cloudinary cleanup fails
+			const result = await db
+				.select()
+				.from(galleryImages)
+				.where(and(eq(galleryImages.id, id), eq(galleryImages.clubType, 'astronomy')))
+				.limit(1);
+
+			if (result.length === 0) {
+				return fail(404, { error: 'Image not found.' });
+			}
+
+			const image = result[0];
+
+			try {
+				await deleteImage(image.imageGroupId);
+			} catch {
+				// Continue with deletion even if image cleanup fails
+			}
+
+			await db
+				.delete(galleryImages)
+				.where(and(eq(galleryImages.id, id), eq(galleryImages.clubType, 'astronomy')));
+		} catch (err) {
+			console.error('Gallery delete failed:', err);
+			return fail(500, { error: 'Failed to delete image.' });
 		}
 
-		await db
-			.delete(galleryImages)
-			.where(and(eq(galleryImages.id, id), eq(galleryImages.clubType, 'astronomy')));
-
-		return { success: true };
+		return { success: true, action: 'delete' };
 	}
 };

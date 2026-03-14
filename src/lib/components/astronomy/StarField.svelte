@@ -202,6 +202,5 @@
 <canvas
 	bind:this={canvas}
 	class="fixed inset-0 z-0 pointer-events-none"
-	style="will-change: transform;"
 	aria-hidden="true"
 ></canvas>

@@ -1,0 +1,1 @@
+ALTER TABLE "members" ADD COLUMN "preference_reminder_sent_at" timestamp;

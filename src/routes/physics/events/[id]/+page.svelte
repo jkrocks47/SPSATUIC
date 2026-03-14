@@ -27,12 +27,21 @@
 					src={event.imageUrl}
 					alt={event.title}
 					class="w-full h-64 sm:h-96 object-cover"
+					class:grayscale={data.isPast}
 				/>
 			</div>
 		{/if}
 
 		<!-- Content -->
 		<div class="bg-white rounded-2xl border border-gray-100 p-8 sm:p-12">
+			{#if data.isPast}
+				<div class="mb-6 pb-4 border-b border-gray-100">
+					<span class="font-body text-[10px] tracking-widest px-3 py-1 rounded-full bg-gray-100 text-gray-400 border border-gray-200 uppercase">
+						Past Event
+					</span>
+				</div>
+			{/if}
+
 			<h1 class="font-display text-3xl sm:text-4xl font-bold text-physics-dark mb-6">
 				{event.title}
 			</h1>
@@ -60,16 +69,18 @@
 				{/if}
 			</div>
 
-			<!-- RSVP counts -->
-			{#if data.rsvpCounts.going > 0 || data.rsvpCounts.maybe > 0}
-				<div class="flex gap-3 mb-4">
-					{#if data.rsvpCounts.going > 0}
-						<span class="text-xs text-green-600/70 font-medium">{data.rsvpCounts.going} going</span>
-					{/if}
-					{#if data.rsvpCounts.maybe > 0}
-						<span class="text-xs text-yellow-600/70 font-medium">{data.rsvpCounts.maybe} maybe</span>
-					{/if}
-				</div>
+			{#if !data.isPast}
+				<!-- RSVP counts -->
+				{#if data.rsvpCounts.going > 0 || data.rsvpCounts.maybe > 0}
+					<div class="flex gap-3 mb-4">
+						{#if data.rsvpCounts.going > 0}
+							<span class="text-xs text-green-600/70 font-medium">{data.rsvpCounts.going} going</span>
+						{/if}
+						{#if data.rsvpCounts.maybe > 0}
+							<span class="text-xs text-yellow-600/70 font-medium">{data.rsvpCounts.maybe} maybe</span>
+						{/if}
+					</div>
+				{/if}
 			{/if}
 
 			{#if event.description}
@@ -79,15 +90,17 @@
 			{/if}
 
 			<!-- RSVP Buttons (physics theme override) -->
-			<div class="physics-rsvp">
-				<RSVPButtons
-					eventId={event.id}
-					currentStatus={data.memberRsvp}
-					isLoggedIn={data.isLoggedIn}
-					isVerified={data.isVerified}
-					redirectTo={`/physics/events/${event.id}`}
-				/>
-			</div>
+			{#if !data.isPast}
+				<div class="physics-rsvp">
+					<RSVPButtons
+						eventId={event.id}
+						currentStatus={data.memberRsvp}
+						isLoggedIn={data.isLoggedIn}
+						isVerified={data.isVerified}
+						redirectTo={`/physics/events/${event.id}`}
+					/>
+				</div>
+			{/if}
 		</div>
 	</div>
 </section>

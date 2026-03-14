@@ -8,6 +8,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const search = url.searchParams.get('search') || '';
 	const clubFilter = url.searchParams.get('club') || '';
 	const roleFilter = url.searchParams.get('role') || '';
+	const interestFilter = url.searchParams.get('interest') || '';
 
 	let query = db.select().from(members).orderBy(desc(members.createdAt)).$dynamic();
 
@@ -28,6 +29,11 @@ export const load: PageServerLoad = async ({ url }) => {
 	if (clubFilter === 'astronomy') filtered = filtered.filter((m) => m.astronomyMember);
 	if (clubFilter === 'physics') filtered = filtered.filter((m) => m.physicsMember);
 	if (roleFilter) filtered = filtered.filter((m) => m.role === roleFilter);
+	if (interestFilter) {
+		filtered = filtered.filter(
+			(m) => Array.isArray(m.eventPreferences) && m.eventPreferences.includes(interestFilter)
+		);
+	}
 
 	// Get attendance counts
 	const checkinCounts = await db
@@ -53,6 +59,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		search,
 		clubFilter,
 		roleFilter,
+		interestFilter,
 		totalCount: allMembers.length
 	};
 };
@@ -75,7 +82,7 @@ export const actions: Actions = {
 	exportCsv: async () => {
 		const allMembers = await db.select().from(members).orderBy(members.lastName);
 
-		const header = 'First Name,Last Name,Email,Role,Verified,Astronomy,Physics,Year,Major,Joined';
+		const header = 'First Name,Last Name,Email,Role,Verified,Astronomy,Physics,Year,Major,Event Preferences,Joined';
 		const rows = allMembers.map((m) =>
 			[
 				m.firstName,
@@ -87,6 +94,7 @@ export const actions: Actions = {
 				m.physicsMember ? 'Yes' : 'No',
 				m.year || '',
 				m.major || '',
+				`"${(m.eventPreferences || []).join('; ')}"`,
 				m.createdAt?.toISOString().split('T')[0] || ''
 			].join(',')
 		);

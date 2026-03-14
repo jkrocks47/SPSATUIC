@@ -145,7 +145,7 @@
 					{#each events as event, i}
 						{@const { month, day } = formatDate(event.date)}
 						<ScrollReveal delay={i * 150} class="flex-shrink-0 w-80 md:w-96 snap-center">
-							<div class="p-4 text-center transition-all duration-300 event-card-simple">
+							<a href="/astronomy/events/{event.id}" class="no-underline block p-4 text-center transition-all duration-400 event-card-simple group">
 								<!-- Circular image with geometric framing and halftone filter -->
 								<div class="relative w-44 h-44 md:w-48 md:h-48 mx-auto mb-4 rounded-full overflow-hidden border-[3px] border-cosmos-black/12 shadow-lg event-circle">
 									{#if event.imageUrl}
@@ -153,37 +153,45 @@
 											src={event.imageUrl}
 											alt={event.title}
 											loading="lazy"
-											class="w-full h-full object-cover halftone-img"
+											class="w-full h-full object-cover halftone-img transition-all duration-700 group-hover:scale-110 group-hover:halftone-off"
 										/>
 									{:else}
 										<div
-											class="w-full h-full halftone-img"
+											class="w-full h-full halftone-img transition-all duration-700 group-hover:halftone-off"
 											style="background: radial-gradient(circle, rgba(79,70,229,0.3), rgba(168,85,247,0.2), rgba(10,10,15,0.8));"
 										></div>
 									{/if}
 
+									<!-- Orbital ring on hover -->
+									<div class="orbit-ring"></div>
+
 									<!-- Date badge: dark brutalist overlapping the frame -->
-									<div class="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-cosmos-black text-astro-cream px-3 py-1 text-center leading-tight shadow-md">
+									<div class="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-cosmos-black text-astro-cream px-3 py-1 text-center leading-tight shadow-md transition-all duration-300 group-hover:bg-astro-indigo group-hover:shadow-lg">
 										<span class="block font-mono text-[11px] tracking-wider">{month}</span>
 										<span class="block font-display font-bold text-lg -mt-0.5">{String(day).padStart(2, '0')}</span>
 									</div>
 								</div>
 
 								<!-- Title -->
-								<h3 class="font-display font-bold text-cosmos-black text-center text-sm uppercase tracking-[0.08em] mt-8 mb-2">
+								<h3 class="font-display font-bold text-cosmos-black text-center text-sm uppercase tracking-[0.08em] mt-8 mb-2 transition-colors duration-300 group-hover:text-astro-indigo">
 									{event.title}
 								</h3>
 
 								<!-- Location + time -->
 								<div class="text-center space-y-0.5">
 									{#if event.time}
-										<p class="font-mono text-xs text-cosmos-black/45">{event.time}</p>
+										<p class="font-mono text-xs text-cosmos-black/45 transition-colors duration-300 group-hover:text-cosmos-black/65">{event.time}</p>
 									{/if}
 									{#if event.location}
-										<p class="font-body text-xs text-cosmos-black/45">{event.location}</p>
+										<p class="font-body text-xs text-cosmos-black/45 transition-colors duration-300 group-hover:text-cosmos-black/65">{event.location}</p>
 									{/if}
 								</div>
-							</div>
+
+								<!-- View prompt -->
+								<p class="font-mono text-[10px] tracking-[0.2em] text-cosmos-black/0 mt-3 transition-all duration-300 group-hover:text-astro-indigo/60 view-prompt">
+									VIEW DETAILS →
+								</p>
+							</a>
 						</ScrollReveal>
 					{/each}
 				</div>
@@ -241,6 +249,12 @@
 	/* Halftone image filter: high-contrast grainy treatment */
 	.halftone-img {
 		filter: contrast(1.3) grayscale(0.4) url(#halftone);
+		transition: filter 0.5s ease;
+	}
+
+	/* Remove halftone on hover to reveal full-color image */
+	.event-card-simple:hover .halftone-img {
+		filter: contrast(1.1) grayscale(0);
 	}
 
 	/* Event circle geometric framing */
@@ -248,11 +262,54 @@
 		box-shadow:
 			0 4px 12px rgba(0,0,0,0.1),
 			0 0 0 1px rgba(10,10,15,0.06);
+		transition: box-shadow 0.4s ease;
 	}
 
-	/* Simplified event card */
+	.event-card-simple:hover .event-circle {
+		box-shadow:
+			0 4px 20px rgba(79,70,229,0.2),
+			0 0 0 1px rgba(79,70,229,0.15);
+	}
+
+	/* Orbit ring: dashed circle that spins on hover */
+	.orbit-ring {
+		position: absolute;
+		inset: -6px;
+		border-radius: 50%;
+		border: 1px dashed rgba(79,70,229,0.4);
+		opacity: 0;
+		transition: opacity 0.4s ease;
+		pointer-events: none;
+		z-index: 1;
+	}
+
+	.event-card-simple:hover .orbit-ring {
+		opacity: 1;
+		animation: spin 8s linear infinite;
+	}
+
+	@keyframes spin {
+		to { transform: rotate(360deg); }
+	}
+
+	/* Event card hover */
+	.event-card-simple {
+		transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), filter 0.4s ease;
+	}
+
 	.event-card-simple:hover {
-		transform: translateY(-4px);
+		transform: translateY(-6px);
+		filter: drop-shadow(0 8px 20px rgba(79,70,229,0.1));
+	}
+
+	/* View prompt slide-up */
+	.view-prompt {
+		transform: translateY(4px);
+		transition: all 0.3s ease;
+	}
+
+	.event-card-simple:hover .view-prompt {
+		transform: translateY(0);
 	}
 
 	/* Animated orbital path */
@@ -266,12 +323,12 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.orbit-path {
-			animation: none;
-		}
-
-		.event-card-simple {
-			transition: none;
-		}
+		.orbit-path { animation: none; }
+		.event-card-simple { transition: none; }
+		.event-card-simple:hover { transform: none; filter: none; }
+		.orbit-ring { transition: none; }
+		.event-card-simple:hover .orbit-ring { animation: none; }
+		.halftone-img { transition: none; }
+		.view-prompt { transition: none; }
 	}
 </style>

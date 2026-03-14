@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
+	import { EVENT_PREFERENCES } from '$lib/utils/constants';
 
 	let { data, form } = $props();
 
@@ -11,6 +12,7 @@
 		if (search) params.set('search', search);
 		if (data.clubFilter) params.set('club', data.clubFilter);
 		if (data.roleFilter) params.set('role', data.roleFilter);
+		if (data.interestFilter) params.set('interest', data.interestFilter);
 		goto(`/admin/members?${params.toString()}`);
 	}
 
@@ -53,11 +55,31 @@
 			<input type="text" placeholder="Search by name or email..." bind:value={search} class="search-input" />
 			<button type="submit" class="search-btn">Search</button>
 		</form>
-		<div class="filter-chips">
-			<a href="/admin/members" class="chip" class:active={!data.clubFilter && !data.roleFilter}>All</a>
-			<a href="/admin/members?club=astronomy" class="chip" class:active={data.clubFilter === 'astronomy'}>Astronomy</a>
-			<a href="/admin/members?club=physics" class="chip" class:active={data.clubFilter === 'physics'}>Physics</a>
-			<a href="/admin/members?role=board" class="chip" class:active={data.roleFilter === 'board'}>Board</a>
+		<div class="filter-row">
+			<div class="filter-chips">
+				<a href="/admin/members" class="chip" class:active={!data.clubFilter && !data.roleFilter && !data.interestFilter}>All</a>
+				<a href="/admin/members?club=astronomy" class="chip" class:active={data.clubFilter === 'astronomy'}>Astronomy</a>
+				<a href="/admin/members?club=physics" class="chip" class:active={data.clubFilter === 'physics'}>Physics</a>
+				<a href="/admin/members?role=board" class="chip" class:active={data.roleFilter === 'board'}>Board</a>
+			</div>
+			<select
+				value={data.interestFilter}
+				onchange={(e) => {
+					const params = new URLSearchParams();
+					if (search) params.set('search', search);
+					if (data.clubFilter) params.set('club', data.clubFilter);
+					if (data.roleFilter) params.set('role', data.roleFilter);
+					const val = e.currentTarget.value;
+					if (val) params.set('interest', val);
+					goto(`/admin/members?${params.toString()}`);
+				}}
+				class="interest-select"
+			>
+				<option value="">All Interests</option>
+				{#each EVENT_PREFERENCES as pref}
+					<option value={pref}>{pref}</option>
+				{/each}
+			</select>
 		</div>
 	</div>
 
@@ -73,6 +95,7 @@
 						<th>Email</th>
 						<th>Clubs</th>
 						<th>Events</th>
+						<th>Interests</th>
 						<th>Role</th>
 						<th>Verified</th>
 						<th>Joined</th>
@@ -90,6 +113,18 @@
 								{#if member.physicsMember}<span class="club-badge phys">Physics</span>{/if}
 							</td>
 							<td>{member.eventsAttended}</td>
+							<td class="interests-cell">
+								{#if member.eventPreferences && member.eventPreferences.length > 0}
+									{#each member.eventPreferences.slice(0, 3) as pref}
+										<span class="interest-badge">{pref}</span>
+									{/each}
+									{#if member.eventPreferences.length > 3}
+										<span class="interest-more">+{member.eventPreferences.length - 3}</span>
+									{/if}
+								{:else}
+									<span class="no-prefs">--</span>
+								{/if}
+							</td>
 							<td>
 								<form method="POST" action="?/updateRole" use:enhance class="inline-form">
 									<input type="hidden" name="id" value={member.id} />
@@ -200,4 +235,33 @@
 	.verify-badge { font-size: 0.7rem; font-weight: 500; padding: 0.1rem 0.4rem; border-radius: 9999px; }
 	.verify-badge.verified { background: #dcfce7; color: #16a34a; }
 	.verify-badge.unverified { background: #fef3c7; color: #d97706; }
+
+	.filter-row { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+
+	.interest-select {
+		padding: 0.3rem 0.6rem;
+		border: 1px solid #d1d5db;
+		border-radius: 0.375rem;
+		font-size: 0.75rem;
+		color: #374151;
+		background: #fff;
+		cursor: pointer;
+	}
+
+	.interest-select:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+	.interests-cell { display: flex; flex-wrap: wrap; gap: 0.2rem; align-items: center; }
+
+	.interest-badge {
+		font-size: 0.6rem;
+		font-weight: 500;
+		padding: 0.1rem 0.4rem;
+		border-radius: 9999px;
+		background: #f0f0ff;
+		color: #4f46e5;
+		white-space: nowrap;
+	}
+
+	.interest-more { font-size: 0.6rem; color: #9ca3af; padding: 0.1rem 0.2rem; }
+	.no-prefs { color: #d1d5db; font-size: 0.75rem; }
 </style>

@@ -8,26 +8,31 @@
 
 	const membershipLinks = [
 		{ href: '/admin/members', label: 'Members' },
-		{ href: '/admin/announcements', label: 'Announcements' }
+		{ href: '/admin/announcements', label: 'Announcements' },
+		{ href: '/admin/content', label: 'Site Content' }
 	];
 
 	const astronomyLinks = [
 		{ href: '/admin/astronomy', label: 'Dashboard' },
 		{ href: '/admin/astronomy/events', label: 'Events' },
-		{ href: '/admin/astronomy/gallery', label: 'Gallery' }
+		{ href: '/admin/astronomy/gallery', label: 'Gallery' },
+		{ href: '/admin/astronomy/officers', label: 'Officers' },
+		{ href: '/admin/astronomy/content', label: 'Content' }
 	];
 
 	const physicsLinks = [
 		{ href: '/admin/physics', label: 'Dashboard' },
 		{ href: '/admin/physics/events', label: 'Events' },
-		{ href: '/admin/physics/gallery', label: 'Gallery' }
+		{ href: '/admin/physics/gallery', label: 'Gallery' },
+		{ href: '/admin/physics/officers', label: 'Officers' },
+		{ href: '/admin/physics/content', label: 'Content' }
 	];
 
 	let currentPath = $derived($page.url.pathname);
-	let user = $derived($page.data.user);
+	let member = $derived($page.data.member);
 </script>
 
-{#if !user}
+{#if !member?.adminRole}
 	{@render children()}
 {:else}
 	<div class="admin-layout">
@@ -72,6 +77,19 @@
 						</a>
 					{/each}
 				</div>
+
+				<div class="nav-section">
+					<span class="nav-section-label">Quick Links</span>
+					<a href="/dashboard" class="nav-item">
+						My Dashboard
+					</a>
+					<a href="/astronomy" class="nav-item" target="_blank">
+						Astronomy Site ↗
+					</a>
+					<a href="/physics" class="nav-item" target="_blank">
+						Physics Site ↗
+					</a>
+				</div>
 			</nav>
 		</aside>
 
@@ -82,8 +100,8 @@
 					&#9776;
 				</button>
 				<div class="top-bar-right">
-					<span class="user-name">{user.name}</span>
-					<span class="user-role">({user.role})</span>
+					<span class="user-name">{member.firstName} {member.lastName}</span>
+					<span class="user-role">({member.adminRole})</span>
 					<form method="POST" action="/admin?/logout" use:enhance>
 						<button type="submit" class="logout-btn">Logout</button>
 					</form>

@@ -2,13 +2,14 @@ import type { PageServerLoad } from './$types';
 import { eq, and, gte, lte, desc, asc, or, isNull } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { events, galleryImages, announcements } from '$lib/server/db/schema';
+import { getContentWithDefaults } from '$lib/server/content';
 
 export const load: PageServerLoad = async () => {
 	try {
 		const today = new Date().toISOString().split('T')[0];
 		const now = new Date();
 
-		const [upcomingEvents, latestGalleryImages, activeAnnouncements] = await Promise.all([
+		const [upcomingEvents, latestGalleryImages, activeAnnouncements, content] = await Promise.all([
 			db
 				.select({
 					id: events.id,
@@ -32,10 +33,18 @@ export const load: PageServerLoad = async () => {
 				.select({
 					id: galleryImages.id,
 					url: galleryImages.url,
+					thumbnailUrl: galleryImages.thumbnailUrl,
 					caption: galleryImages.caption,
 					photographer: galleryImages.photographer,
 					width: galleryImages.width,
-					height: galleryImages.height
+					height: galleryImages.height,
+					raCoord: galleryImages.raCoord,
+					decCoord: galleryImages.decCoord,
+					exposureTime: galleryImages.exposureTime,
+					equipment: galleryImages.equipment,
+					iso: galleryImages.iso,
+					aperture: galleryImages.aperture,
+					observationDate: galleryImages.observationDate
 				})
 				.from(galleryImages)
 				.where(eq(galleryImages.clubType, 'astronomy'))
@@ -57,20 +66,23 @@ export const load: PageServerLoad = async () => {
 					)
 				)
 				.orderBy(desc(announcements.isPinned), desc(announcements.createdAt))
-				.limit(5)
+				.limit(5),
+			getContentWithDefaults('astronomy', 'home')
 		]);
 
 		return {
 			upcomingEvents,
 			galleryImages: latestGalleryImages,
-			announcements: activeAnnouncements
+			announcements: activeAnnouncements,
+			content
 		};
 	} catch (e) {
 		console.error('Failed to load astronomy data:', e);
 		return {
 			upcomingEvents: [],
 			galleryImages: [],
-			announcements: []
+			announcements: [],
+			content: {} as Record<string, string>
 		};
 	}
 };

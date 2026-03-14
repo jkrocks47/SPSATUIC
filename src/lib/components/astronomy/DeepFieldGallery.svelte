@@ -1,15 +1,22 @@
 <script lang="ts">
 	import HUDOverlay from '$lib/components/astronomy/HUDOverlay.svelte';
 	import ScrollReveal from '$lib/components/astronomy/ScrollReveal.svelte';
-	import { browser } from '$app/environment';
 
 	interface GalleryImage {
 		id: string;
 		url: string;
+		thumbnailUrl?: string | null;
 		caption: string | null;
 		photographer: string | null;
 		width?: number | null;
 		height?: number | null;
+		raCoord?: string | null;
+		decCoord?: string | null;
+		exposureTime?: string | null;
+		equipment?: string | null;
+		iso?: string | null;
+		aperture?: string | null;
+		observationDate?: string | null;
 	}
 
 	interface Props {
@@ -19,37 +26,39 @@
 	let { images }: Props = $props();
 
 	let scrollContainer: HTMLDivElement | undefined = $state();
+	let selectedImage = $state<GalleryImage | null>(null);
 
-	function pseudoRandomCoord(id: string) {
-		let hash = 0;
-		for (let i = 0; i < id.length; i++) {
-			hash = (hash << 5) - hash + id.charCodeAt(i);
-			hash |= 0;
-		}
-		const ra_h = Math.abs(hash % 24);
-		const ra_m = Math.abs((hash >> 4) % 60);
-		const dec_d = (Math.abs((hash >> 8) % 180)) - 90;
-		const dec_m = Math.abs((hash >> 12) % 60);
-		const sign = dec_d >= 0 ? '+' : '';
-		return `RA ${ra_h}h ${ra_m}m, Dec ${sign}${dec_d}\u00B0 ${dec_m}'`;
+	const REDACTED = '[REDACTED]';
+
+	function formatCoord(image: GalleryImage): string {
+		if (image.raCoord && image.decCoord) return `RA ${image.raCoord}, Dec ${image.decCoord}`;
+		if (image.raCoord) return `RA ${image.raCoord}`;
+		if (image.decCoord) return `Dec ${image.decCoord}`;
+		return REDACTED;
 	}
 
-	function pseudoExposure(id: string) {
-		let hash = 0;
-		for (let i = 0; i < id.length; i++) {
-			hash = (hash << 3) - hash + id.charCodeAt(i);
-			hash |= 0;
-		}
-		const minutes = Math.abs(hash % 30) + 5;
-		const seconds = Math.abs((hash >> 5) % 60);
-		return `${minutes}m ${seconds}s`;
+	function formatSensor(image: GalleryImage): string {
+		const parts = [];
+		if (image.iso) parts.push(`ISO ${image.iso}`);
+		if (image.aperture) parts.push(image.aperture);
+		return parts.length > 0 ? parts.join(' / ') : REDACTED;
 	}
 
 	function scrollBy(direction: number) {
 		if (!scrollContainer) return;
 		scrollContainer.scrollBy({ left: direction * 340, behavior: 'smooth' });
 	}
+
+	function openLightbox(image: GalleryImage) {
+		selectedImage = image;
+	}
+
+	function closeLightbox() {
+		selectedImage = null;
+	}
 </script>
+
+<svelte:window onkeydown={(e) => { if (e.key === 'Escape') closeLightbox(); }} />
 
 <section class="relative bg-cosmos-black py-20 px-4">
 	<div class="max-w-7xl mx-auto">
@@ -110,31 +119,41 @@
 				<div class="flex gap-5 overflow-x-auto pb-6 snap-x snap-mandatory scrollbar-hide py-4" bind:this={scrollContainer}>
 					{#each images as image, i}
 						<ScrollReveal delay={i * 60}>
-							<div class="relative group flex-shrink-0 w-72 md:w-80 snap-center">
+							<div
+								class="relative group flex-shrink-0 w-72 md:w-80 snap-center cursor-pointer"
+								onclick={() => openLightbox(image)}
+								onkeydown={(e) => e.key === 'Enter' && openLightbox(image)}
+								role="button"
+								tabindex="0"
+							>
 								{#if i === 0}
 									<!-- Featured image: permanent monospaced data block overlay -->
 									<div class="relative overflow-hidden deep-field-frame">
 										<img
-											src={image.url}
+											src={image.thumbnailUrl || image.url}
 											alt={image.caption || 'Deep field photograph'}
 											class="w-full aspect-square object-cover deep-field-img"
 											loading="lazy"
 										/>
 
-										<!-- Stark monospaced data block — transforms beauty into scientific evidence -->
+										<!-- Stark monospaced data block — real observation data -->
 										<div class="absolute bottom-0 left-0 right-0 bg-black/60 p-3 pointer-events-none">
 											<div class="space-y-1">
 												<div class="flex items-center justify-between">
-													<span class="font-mono text-[9px] tracking-[0.15em] uppercase text-green-400/50">COORDINATES</span>
-													<span class="font-mono text-[10px] text-[#22ff88]/80">{pseudoRandomCoord(image.id)}</span>
+													<span class="font-mono text-[9px] tracking-[0.15em] uppercase text-green-400/50">COORD</span>
+													<span class="font-mono text-[10px] text-[#22ff88]/80">{formatCoord(image)}</span>
 												</div>
 												<div class="flex items-center justify-between">
-													<span class="font-mono text-[9px] tracking-[0.15em] uppercase text-green-400/50">EXPOSURE</span>
-													<span class="font-mono text-[10px] text-[#22ff88]/80">{pseudoExposure(image.id)}</span>
+													<span class="font-mono text-[9px] tracking-[0.15em] uppercase text-green-400/50">EXP</span>
+													<span class="font-mono text-[10px] text-[#22ff88]/80">{image.exposureTime || REDACTED}</span>
 												</div>
 												<div class="flex items-center justify-between">
-													<span class="font-mono text-[9px] tracking-[0.15em] uppercase text-green-400/50">SENSOR</span>
-													<span class="font-mono text-[10px] text-[#22ff88]/80">ISO 3200 / f2.8</span>
+													<span class="font-mono text-[9px] tracking-[0.15em] uppercase text-green-400/50">EQUIP</span>
+													<span class="font-mono text-[10px] text-[#22ff88]/80">{image.equipment || REDACTED}</span>
+												</div>
+												<div class="flex items-center justify-between">
+													<span class="font-mono text-[9px] tracking-[0.15em] uppercase text-green-400/50">DATE</span>
+													<span class="font-mono text-[10px] text-[#22ff88]/80">{image.observationDate || REDACTED}</span>
 												</div>
 											</div>
 										</div>
@@ -142,14 +161,14 @@
 										<!-- Corner brackets -->
 										<div class="absolute top-2 left-2 w-4 h-4 border-l border-t border-white/20"></div>
 										<div class="absolute top-2 right-2 w-4 h-4 border-r border-t border-white/20"></div>
-										<div class="absolute bottom-[76px] left-2 w-4 h-4 border-l border-b border-white/20"></div>
-										<div class="absolute bottom-[76px] right-2 w-4 h-4 border-r border-b border-white/20"></div>
+										<div class="absolute bottom-[90px] left-2 w-4 h-4 border-l border-b border-white/20"></div>
+										<div class="absolute bottom-[90px] right-2 w-4 h-4 border-r border-b border-white/20"></div>
 									</div>
 								{:else}
 									<!-- Standard deep field window -->
 									<div class="relative overflow-hidden deep-field-frame">
 										<img
-											src={image.url}
+											src={image.thumbnailUrl || image.url}
 											alt={image.caption || 'Deep field photograph'}
 											class="w-full aspect-square object-cover deep-field-img transition-transform duration-500 ease-out group-hover:scale-105"
 											loading="lazy"
@@ -158,10 +177,10 @@
 										<!-- HUD overlay on hover -->
 										<div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-400 ease-in-out">
 											<HUDOverlay
-												coordinate={pseudoRandomCoord(image.id)}
-												exposureTime={pseudoExposure(image.id)}
-												equipment="CELESTRON C8"
-												date={image.photographer || 'Unknown'}
+												coordinate={formatCoord(image)}
+												exposureTime={image.exposureTime || REDACTED}
+												equipment={image.equipment || REDACTED}
+												date={image.observationDate || REDACTED}
 											/>
 										</div>
 									</div>
@@ -174,6 +193,80 @@
 		{/if}
 	</div>
 </section>
+
+<!-- Lightbox Modal -->
+{#if selectedImage}
+	<div
+		class="fixed inset-0 z-50 bg-cosmos-black/95 backdrop-blur-sm flex items-center justify-center p-4"
+		role="dialog"
+		aria-modal="true"
+	>
+		<button
+			class="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer"
+			onclick={closeLightbox}
+			aria-label="Close lightbox"
+		></button>
+
+		<div class="relative z-10 max-w-5xl max-h-[90vh] flex flex-col items-center">
+			<button
+				class="absolute -top-10 right-0 font-mono text-xs tracking-[0.2em] text-astro-cream/50 hover:text-astro-cream transition-colors bg-transparent border-0 cursor-pointer"
+				onclick={closeLightbox}
+			>
+				CLOSE &times;
+			</button>
+
+			<div class="relative">
+				<img
+					src={selectedImage.url}
+					alt={selectedImage.caption || 'Deep field photograph'}
+					class="max-w-full max-h-[75vh] object-contain rounded-lg"
+				/>
+
+				<!-- HUD corner brackets on the full-res image -->
+				<div class="absolute top-3 left-3 w-6 h-6 border-l border-t border-[#22d3ee]/40"></div>
+				<div class="absolute top-3 right-3 w-6 h-6 border-r border-t border-[#22d3ee]/40"></div>
+				<div class="absolute bottom-3 left-3 w-6 h-6 border-l border-b border-[#22d3ee]/40"></div>
+				<div class="absolute bottom-3 right-3 w-6 h-6 border-r border-b border-[#22d3ee]/40"></div>
+			</div>
+
+			<!-- Metadata panel below image -->
+			<div class="mt-4 w-full max-w-lg">
+				{#if selectedImage.caption}
+					<p class="font-body text-sm text-astro-cream/80 text-center mb-3">{selectedImage.caption}</p>
+				{/if}
+
+				<div class="grid grid-cols-2 gap-x-6 gap-y-1.5">
+					<div class="col-span-2 flex items-center gap-2">
+						<span class="font-mono text-[9px] tracking-[0.15em] uppercase text-cyan-400/50">COORD</span>
+						<span class="font-mono text-xs text-[#22d3ee]">{formatCoord(selectedImage)}</span>
+					</div>
+					<div class="flex items-center gap-2">
+						<span class="font-mono text-[9px] tracking-[0.15em] uppercase text-cyan-400/50">EXP</span>
+						<span class="font-mono text-xs text-[#22d3ee]">{selectedImage.exposureTime || REDACTED}</span>
+					</div>
+					<div class="flex items-center gap-2">
+						<span class="font-mono text-[9px] tracking-[0.15em] uppercase text-cyan-400/50">EQUIP</span>
+						<span class="font-mono text-xs text-[#22d3ee]">{selectedImage.equipment || REDACTED}</span>
+					</div>
+					<div class="flex items-center gap-2">
+						<span class="font-mono text-[9px] tracking-[0.15em] uppercase text-cyan-400/50">SENSOR</span>
+						<span class="font-mono text-xs text-[#22d3ee]">{formatSensor(selectedImage)}</span>
+					</div>
+					<div class="flex items-center gap-2">
+						<span class="font-mono text-[9px] tracking-[0.15em] uppercase text-cyan-400/50">DATE</span>
+						<span class="font-mono text-xs text-[#22d3ee]">{selectedImage.observationDate || REDACTED}</span>
+					</div>
+					{#if selectedImage.photographer}
+						<div class="col-span-2 flex items-center gap-2">
+							<span class="font-mono text-[9px] tracking-[0.15em] uppercase text-cyan-400/50">PHOTO</span>
+							<span class="font-mono text-xs text-[#22d3ee]">{selectedImage.photographer}</span>
+						</div>
+					{/if}
+				</div>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <style>
 	/* Square polaroid frames — windows into the infinite */

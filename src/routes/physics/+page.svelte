@@ -10,7 +10,11 @@
 	<title>Society of Physics Students | UIC</title>
 </svelte:head>
 
-<PhysicsHero />
+<PhysicsHero
+	heroTitle={data.content['hero-title']}
+	heroSubtitle={data.content['hero-subtitle']}
+	heroCta={data.content['hero-cta']}
+/>
 
 {#if data.announcements && data.announcements.length > 0}
 	<div class="px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto mt-8">
@@ -23,8 +27,8 @@
 	<div class="max-w-7xl mx-auto">
 		<div class="flex items-end justify-between mb-10">
 			<div>
-				<p class="font-body text-sm tracking-widest text-physics-blue/70 uppercase mb-2">What's happening</p>
-				<h2 class="font-display text-3xl sm:text-4xl font-bold text-physics-dark">Upcoming Events</h2>
+				<p class="font-body text-sm tracking-widest text-physics-blue/70 uppercase mb-2">{data.content['events-subtitle'] ?? "What's happening"}</p>
+				<h2 class="font-display text-3xl sm:text-4xl font-bold text-physics-dark">{data.content['events-title'] ?? 'Upcoming Events'}</h2>
 			</div>
 			<a
 				href="/physics/events"
@@ -85,8 +89,8 @@
 		<div class="max-w-7xl mx-auto">
 			<div class="flex items-end justify-between mb-10">
 				<div>
-					<p class="font-body text-sm tracking-widest text-physics-blue/70 uppercase mb-2">Visual archive</p>
-					<h2 class="font-display text-3xl sm:text-4xl font-bold text-physics-dark">Gallery</h2>
+					<p class="font-body text-sm tracking-widest text-physics-blue/70 uppercase mb-2">{data.content['gallery-subtitle'] ?? 'Visual archive'}</p>
+					<h2 class="font-display text-3xl sm:text-4xl font-bold text-physics-dark">{data.content['gallery-title'] ?? 'Gallery'}</h2>
 				</div>
 				<a
 					href="/physics/gallery"
@@ -119,12 +123,10 @@
 <!-- About Preview -->
 <section class="py-20 px-4 sm:px-6 lg:px-8">
 	<div class="max-w-4xl mx-auto text-center">
-		<p class="font-body text-sm tracking-widest text-physics-blue/70 uppercase mb-2">About us</p>
-		<h2 class="font-display text-3xl sm:text-4xl font-bold text-physics-dark mb-6">Who We Are</h2>
+		<p class="font-body text-sm tracking-widest text-physics-blue/70 uppercase mb-2">{data.content['about-subtitle'] ?? 'About us'}</p>
+		<h2 class="font-display text-3xl sm:text-4xl font-bold text-physics-dark mb-6">{data.content['about-title'] ?? 'Who We Are'}</h2>
 		<p class="font-body text-lg text-physics-dark/60 leading-relaxed max-w-2xl mx-auto">
-			The Society of Physics Students at UIC is a professional organization that aims to foster
-			a love of physics among students. We host research talks, lab tours, study sessions, and
-			social events throughout the academic year.
+			{data.content['about-body'] ?? 'The Society of Physics Students at UIC is a professional organization that aims to foster a love of physics among students. We host research talks, lab tours, study sessions, and social events throughout the academic year.'}
 		</p>
 		<a
 			href="/physics/about"

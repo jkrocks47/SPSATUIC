@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { YEARS, EVENT_PREFERENCES } from '$lib/utils/constants';
 
-	let { form } = $props();
+	let { form, data } = $props();
 
 	let step = $state(1);
 	let memberType = $state<'new' | 'returning' | null>(null);
@@ -44,7 +44,7 @@
 						<span class="choice-label">New Member</span>
 						<span class="choice-desc">I'm joining for the first time</span>
 					</button>
-					<a href="/login" class="choice-btn">
+					<a href="/login{data?.redirectTo ? `?redirectTo=${encodeURIComponent(data.redirectTo)}` : ''}" class="choice-btn">
 						<span class="choice-icon">&#8634;</span>
 						<span class="choice-label">Returning Member</span>
 						<span class="choice-desc">I already have an account</span>
@@ -57,6 +57,12 @@
 					await update({ reset: false });
 				};
 			}}>
+				{#if data?.redirectTo}
+					<input type="hidden" name="redirectTo" value={data.redirectTo} />
+				{/if}
+				{#if data?.redirectTo?.includes('/checkin/')}
+					<div class="checkin-banner">Registering to check in to an event</div>
+				{/if}
 				{#if form?.error}
 					<div class="error-message">{form.error}</div>
 				{/if}
@@ -155,7 +161,7 @@
 			</form>
 		{/if}
 
-		<p class="login-link">Already have an account? <a href="/login">Sign in</a></p>
+		<p class="login-link">Already have an account? <a href="/login{data?.redirectTo ? `?redirectTo=${encodeURIComponent(data.redirectTo)}` : ''}">Sign in</a></p>
 	</div>
 </div>
 
@@ -292,6 +298,17 @@
 	.choice-desc {
 		font-size: 0.8rem;
 		color: #9ca3af;
+	}
+
+	.checkin-banner {
+		background: rgba(79, 70, 229, 0.1);
+		border: 1px solid rgba(79, 70, 229, 0.3);
+		color: #a5b4fc;
+		padding: 0.6rem 1rem;
+		border-radius: 0.5rem;
+		font-size: 0.8rem;
+		text-align: center;
+		margin-bottom: 1rem;
 	}
 
 	/* Form */

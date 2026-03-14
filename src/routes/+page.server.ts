@@ -2,12 +2,13 @@ import type { PageServerLoad } from './$types';
 import { eq, and, gte, asc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { events, clubInfo, officers } from '$lib/server/db/schema';
+import { getContentWithDefaults } from '$lib/server/content';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	try {
 		const today = new Date().toISOString().split('T')[0];
 
-		const [upcomingEvents, spsInfoResult, spsOfficers] = await Promise.all([
+		const [upcomingEvents, spsInfoResult, spsOfficers, content] = await Promise.all([
 			db
 				.select({
 					id: events.id,
@@ -32,7 +33,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 				.select()
 				.from(officers)
 				.where(eq(officers.clubType, 'physics'))
-				.orderBy(asc(officers.sortOrder))
+				.orderBy(asc(officers.sortOrder)),
+			getContentWithDefaults(null, 'root-home')
 		]);
 
 		return {
@@ -40,10 +42,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 			spsInfo: spsInfoResult[0] ?? null,
 			spsOfficers,
 			isLoggedIn: !!locals.member,
-			isVerified: locals.member?.emailVerified ?? false
+			isVerified: locals.member?.emailVerified ?? false,
+			member: locals.member,
+			content
 		};
 	} catch (e) {
 		console.error('Failed to load homepage data:', e);
-		return { upcomingEvents: [], spsInfo: null, spsOfficers: [], isLoggedIn: false, isVerified: false };
+		return { upcomingEvents: [], spsInfo: null, spsOfficers: [], isLoggedIn: false, isVerified: false, member: null, content: {} as Record<string, string> };
 	}
 };

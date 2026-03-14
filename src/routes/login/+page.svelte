@@ -38,7 +38,7 @@
 
 		<div class="links">
 			<a href="/forgot-password">Forgot password?</a>
-			<a href="/register">Create an account</a>
+			<a href="/register{data.redirectTo ? `?redirectTo=${encodeURIComponent(data.redirectTo)}` : ''}">Create an account</a>
 		</div>
 	</div>
 </div>

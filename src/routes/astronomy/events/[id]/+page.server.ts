@@ -2,6 +2,7 @@ import { error } from '@sveltejs/kit';
 import { eq, and, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { events, eventRsvps } from '$lib/server/db/schema';
+import { isPastEvent } from '$lib/utils/dates';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -13,6 +14,20 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	if (result.length === 0) {
 		error(404, 'Event not found');
+	}
+
+	const isPast = isPastEvent(result[0].date);
+
+	// Skip RSVP queries for past events
+	if (isPast) {
+		return {
+			event: result[0],
+			isPast,
+			rsvpCounts: { going: 0, maybe: 0, not_going: 0 },
+			memberRsvp: null,
+			isLoggedIn: !!locals.member,
+			isVerified: locals.member?.emailVerified ?? false
+		};
 	}
 
 	// Load RSVP counts
@@ -45,6 +60,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	return {
 		event: result[0],
+		isPast,
 		rsvpCounts: counts,
 		memberRsvp,
 		isLoggedIn: !!locals.member,

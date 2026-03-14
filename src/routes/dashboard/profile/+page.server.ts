@@ -61,6 +61,7 @@ export const actions: Actions = {
 				astronomyMember: parsed.data.astronomyMember,
 				physicsMember: parsed.data.physicsMember,
 				eventPreferences: parsed.data.eventPreferences || [],
+				preferencesReviewedAt: new Date(),
 				updatedAt: new Date()
 			})
 			.where(eq(members.id, member.id));
