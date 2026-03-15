@@ -4,7 +4,7 @@ import { events, eventRsvps, members, reminderLogs } from './db/schema';
 import { env } from '$env/dynamic/private';
 import { Resend } from 'resend';
 import { SITE_NAME } from '$lib/utils/constants';
-import { sendPreferenceReviewEmail } from './email';
+import { sendPreferenceReviewEmail, getBaseUrl } from './email';
 
 const FROM_EMAIL = 'UICSpacetime <noreply@uicspacetime.org>';
 const POLL_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
@@ -126,7 +126,7 @@ async function sendRemindersForDate(
 					? `Reminder: ${reminder.eventTitle} is in one week`
 					: `Tomorrow: ${reminder.eventTitle}`;
 
-			const baseUrl = env.PUBLIC_BASE_URL || 'http://localhost:5173';
+			const baseUrl = getBaseUrl();
 			const unsubscribeUrl = `${baseUrl}/unsubscribe?token=${reminder.unsubscribeToken}`;
 
 			await resend.emails.send({
@@ -213,7 +213,7 @@ function buildReminderEmail(
 	data: PendingReminder,
 	reminderType: '7_day' | '1_day'
 ): string {
-	const baseUrl = env.PUBLIC_BASE_URL || 'http://localhost:5173';
+	const baseUrl = getBaseUrl();
 	const timeframe = reminderType === '7_day' ? 'in one week' : 'tomorrow';
 	const clubLabel =
 		data.eventClubType === 'astronomy' ? 'Astronomy Club' : 'Physics Club';

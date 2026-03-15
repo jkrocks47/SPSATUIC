@@ -7,8 +7,7 @@ import {
 	getAnnouncementRecipients,
 	getAnnouncementRecipientCount
 } from '$lib/server/db/queries';
-import { sendEventAnnouncementEmail } from '$lib/server/email';
-import { env } from '$env/dynamic/private';
+import { sendEventAnnouncementEmail, getBaseUrl } from '$lib/server/email';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -45,7 +44,7 @@ export const actions: Actions = {
 
 		if (recipients.length === 0) return fail(400, { error: 'No eligible recipients.' });
 
-		const baseUrl = env.PUBLIC_BASE_URL || 'http://localhost:5173';
+		const baseUrl = getBaseUrl();
 		const eventUrl = `${baseUrl}/physics/events/${params.id}`;
 		let sentCount = 0;
 

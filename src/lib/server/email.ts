@@ -8,7 +8,7 @@ function getResend() {
 
 const FROM_EMAIL = 'UICSpacetime <noreply@uicspacetime.org>';
 
-function getBaseUrl() {
+export function getBaseUrl() {
 	return env.PUBLIC_BASE_URL || 'http://localhost:5173';
 }
 
