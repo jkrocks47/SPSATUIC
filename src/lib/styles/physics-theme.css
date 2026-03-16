@@ -1,5 +1,11 @@
-/* Physics Section Theme Variables */
+/* Physics Section Theme Variables (RGB channels for Tailwind opacity support) */
 :root {
+	--physics-blue: 14 121 178;
+	--physics-dark: 25 25 35;
+	--physics-light: 251 254 249;
+	--physics-accent: 37 99 235;
+
+	/* Legacy CSS variables */
 	--physics-bg-primary: #fbfef9;
 	--physics-bg-secondary: #f0f4ed;
 	--physics-bg-dark: #191923;
@@ -9,4 +15,113 @@
 	--physics-accent-blue: #0e79b2;
 	--physics-accent-dark: #2563eb;
 	--physics-border: rgba(14, 121, 178, 0.15);
+}
+
+/* ── Dark Mode ── */
+.physics-theme.dark {
+	--physics-dark: 232 232 240;
+	--physics-light: 18 18 26;
+	/* blue and accent stay the same */
+
+	--physics-bg-primary: #12121a;
+	--physics-bg-secondary: #1a1a26;
+	--physics-text-primary: #e8e8f0;
+	--physics-text-secondary: rgba(232, 232, 240, 0.7);
+	--physics-text-muted: rgba(232, 232, 240, 0.4);
+	--physics-border: rgba(14, 121, 178, 0.25);
+
+	color-scheme: dark;
+}
+
+/* Override hardcoded Tailwind utility classes within dark physics context */
+.physics-theme.dark .bg-white {
+	background-color: #1e1e2a !important;
+}
+
+.physics-theme.dark .bg-white\/95 {
+	background-color: rgba(30, 30, 42, 0.95) !important;
+}
+
+.physics-theme.dark .bg-white\/80 {
+	background-color: rgba(30, 30, 42, 0.8) !important;
+}
+
+.physics-theme.dark .bg-gray-50 {
+	background-color: #15151f !important;
+}
+
+.physics-theme.dark .bg-gray-100 {
+	background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.physics-theme.dark .bg-red-50 {
+	background-color: rgba(220, 38, 38, 0.1) !important;
+}
+
+.physics-theme.dark .border-gray-100 {
+	border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.physics-theme.dark .border-gray-200 {
+	border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.physics-theme.dark .border-red-200 {
+	border-color: rgba(220, 38, 38, 0.3) !important;
+}
+
+.physics-theme.dark .text-gray-400 {
+	color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.physics-theme.dark .text-red-600 {
+	color: #f87171 !important;
+}
+
+.physics-theme.dark .shadow-sm {
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Form inputs in dark mode */
+.physics-theme.dark input,
+.physics-theme.dark textarea {
+	background-color: #12121a !important;
+	border-color: rgba(255, 255, 255, 0.1) !important;
+	color: rgb(232 232 240) !important;
+}
+
+.physics-theme.dark input::placeholder,
+.physics-theme.dark textarea::placeholder {
+	color: rgba(232, 232, 240, 0.2) !important;
+}
+
+/* Dark mode selection */
+.physics-theme.dark ::selection {
+	background: rgba(14, 121, 178, 0.4);
+	color: #e8e8f0;
+}
+
+/* RSVP overrides for dark mode */
+.physics-theme.dark .physics-rsvp .rsvp-buttons {
+	border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.physics-theme.dark .physics-rsvp .rsvp-label {
+	color: rgba(232, 232, 240, 0.4);
+}
+
+.physics-theme.dark .physics-rsvp .rsvp-btn {
+	background: rgba(255, 255, 255, 0.05);
+	border-color: rgba(255, 255, 255, 0.1);
+	color: rgba(232, 232, 240, 0.5);
+}
+
+.physics-theme.dark .physics-rsvp .rsvp-btn:hover:not(:disabled) {
+	border-color: rgba(255, 255, 255, 0.2);
+	color: rgba(232, 232, 240, 0.8);
+}
+
+/* Footer divider */
+.physics-theme.dark hr {
+	border-color: rgba(255, 255, 255, 0.08);
 }

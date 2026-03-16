@@ -23,10 +23,10 @@ export default {
 					ember: '#e85d26'
 				},
 				physics: {
-					blue: '#0e79b2',
-					dark: '#191923',
-					light: '#fbfef9',
-					accent: '#2563eb'
+					blue: 'rgb(var(--physics-blue) / <alpha-value>)',
+					dark: 'rgb(var(--physics-dark) / <alpha-value>)',
+					light: 'rgb(var(--physics-light) / <alpha-value>)',
+					accent: 'rgb(var(--physics-accent) / <alpha-value>)'
 				},
 				sps: {
 					navy: '#0d1b2a',

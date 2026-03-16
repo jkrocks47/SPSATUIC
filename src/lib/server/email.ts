@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { SITE_NAME } from '$lib/utils/constants';
 import { env } from '$env/dynamic/private';
+import { env as publicEnv } from '$env/dynamic/public';
 
 function getResend() {
 	return new Resend(env.RESEND_API_KEY);
@@ -9,7 +10,7 @@ function getResend() {
 const FROM_EMAIL = 'UICSpacetime <noreply@uicspacetime.org>';
 
 export function getBaseUrl() {
-	return env.PUBLIC_BASE_URL || 'http://localhost:5173';
+	return publicEnv.PUBLIC_BASE_URL || 'https://uicspacetime.org';
 }
 
 function buildUnsubscribeFooter(unsubscribeToken: string): string {

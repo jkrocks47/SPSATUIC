@@ -13,6 +13,7 @@
 @import '@fontsource/inter/700.css';
 @import '@fontsource/anton/400.css';
 @import '$lib/styles/effects.css';
+@import '$lib/styles/physics-theme.css';
 
 * {
 	margin: 0;
