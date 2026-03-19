@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { checkVerificationToken, validateVerificationToken, generateVerificationToken } from '$lib/server/auth';
+import { checkVerificationToken, validateVerificationToken, generateVerificationToken, destroyMemberSession } from '$lib/server/auth';
 import { sendVerificationEmail } from '$lib/server/email';
 import { db } from '$lib/server/db';
 import { members } from '$lib/server/db/schema';
@@ -85,5 +85,13 @@ export const actions: Actions = {
 		}
 
 		return { resent: true };
+	},
+	logout: async ({ cookies }) => {
+		const token = cookies.get('member_session');
+		if (token) {
+			await destroyMemberSession(token);
+			cookies.delete('member_session', { path: '/' });
+		}
+		throw redirect(303, '/');
 	}
 };

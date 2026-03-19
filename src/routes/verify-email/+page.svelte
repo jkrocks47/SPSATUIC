@@ -81,6 +81,10 @@
 			</form>
 
 			<p class="hint">Already verified? <a href="/login">Sign in</a> to continue.</p>
+
+			<form method="POST" action="?/logout" use:enhance>
+				<button type="submit" class="logout-btn">Log Out</button>
+			</form>
 		{/if}
 	</div>
 </div>
@@ -220,5 +224,23 @@
 
 	.action-btn:hover {
 		background: #4338ca;
+	}
+
+	.logout-btn {
+		margin-top: 1.25rem;
+		padding: 0.5rem 1.25rem;
+		background: transparent;
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		color: #9ca3af;
+		border-radius: 0.375rem;
+		font-size: 0.8rem;
+		cursor: pointer;
+		transition: all 0.15s;
+	}
+
+	.logout-btn:hover {
+		background: rgba(239, 68, 68, 0.1);
+		border-color: rgba(239, 68, 68, 0.3);
+		color: #f87171;
 	}
 </style>
