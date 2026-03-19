@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { canManageClub } from '$lib/utils/constants';
 
 	let { data, form } = $props();
 
@@ -9,6 +10,8 @@
 	let sortedByTotal = $derived([...interestBreakdown].sort((a, b) => b.total - a.total));
 	let maxCount = $derived(sortedByTotal.length > 0 ? sortedByTotal[0].total : 1);
 	let topInterest = $derived(sortedByTotal.length > 0 ? sortedByTotal[0] : null);
+	let canManageAstronomy = $derived(canManageClub(member?.adminRole ?? null, 'astronomy'));
+	let canManagePhysics = $derived(canManageClub(member?.adminRole ?? null, 'physics'));
 </script>
 
 <svelte:head>
@@ -127,19 +130,23 @@
 		{/if}
 
 		<div class="dashboard-cards">
+			{#if canManageAstronomy}
 			<a href="/admin/astronomy" class="dash-card astronomy-card">
 				<div class="card-icon">&#10022;</div>
 				<h2>Astronomy Club</h2>
 				<p>Manage events, gallery, and content for the Astronomy Club.</p>
 				<span class="card-link">Go to Astronomy Admin &rarr;</span>
 			</a>
+			{/if}
 
+			{#if canManagePhysics}
 			<a href="/admin/physics" class="dash-card physics-card">
 				<div class="card-icon">&#9883;</div>
 				<h2>Physics Club</h2>
 				<p>Manage events, gallery, and content for the Physics Club.</p>
 				<span class="card-link">Go to Physics Admin &rarr;</span>
 			</a>
+			{/if}
 		</div>
 	</div>
 {/if}

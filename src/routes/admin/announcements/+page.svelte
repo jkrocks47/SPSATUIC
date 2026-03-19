@@ -3,6 +3,9 @@
 
 	let { data, form } = $props();
 	let showForm = $state(false);
+
+	const adminRole = data.currentUser?.adminRole;
+	const isSuperAdmin = adminRole === 'super_admin';
 </script>
 
 <svelte:head>
@@ -43,9 +46,15 @@
 					<div class="form-group">
 						<label for="clubType">Club</label>
 						<select id="clubType" name="clubType">
-							<option value="">Both Clubs</option>
-							<option value="astronomy">Astronomy Only</option>
-							<option value="physics">Physics Only</option>
+							{#if isSuperAdmin}
+								<option value="">Both Clubs</option>
+								<option value="astronomy">Astronomy Only</option>
+								<option value="physics">Physics Only</option>
+							{:else if adminRole === 'astronomy_admin'}
+								<option value="astronomy">Astronomy</option>
+							{:else if adminRole === 'physics_admin'}
+								<option value="physics">Physics</option>
+							{/if}
 						</select>
 					</div>
 					<div class="form-group checkbox-group">

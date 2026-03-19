@@ -46,7 +46,7 @@ export const actions: Actions = {
 
 		const parsed = registrationSchema.safeParse(data);
 		if (!parsed.success) {
-			const firstError = parsed.error.errors[0]?.message || 'Invalid input';
+			const firstError = parsed.error.issues[0]?.message || 'Invalid input';
 			return fail(400, { error: firstError, email: data.email, firstName: data.firstName, lastName: data.lastName });
 		}
 

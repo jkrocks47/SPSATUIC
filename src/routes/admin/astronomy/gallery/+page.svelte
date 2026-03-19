@@ -93,6 +93,9 @@
 						{#if image.photographer}
 							<p class="image-photographer">by {image.photographer}</p>
 						{/if}
+						{#if image.uploadedByName}
+							<p class="image-uploader">Uploaded by {image.uploadedByName}</p>
+						{/if}
 						<p class="image-date">
 							{image.uploadDate ? new Date(image.uploadDate).toLocaleDateString() : ''}
 						</p>
@@ -263,6 +266,13 @@
 		font-size: 0.75rem;
 		color: #9ca3af;
 		margin-top: 0.15rem;
+	}
+
+	.image-uploader {
+		font-size: 0.7rem;
+		color: #b0b5bf;
+		margin-top: 0.15rem;
+		font-style: italic;
 	}
 
 	.image-date {

@@ -47,7 +47,7 @@ export const actions: Actions = {
 
 		const parsed = profileUpdateSchema.safeParse(data);
 		if (!parsed.success) {
-			return fail(400, { error: parsed.error.errors[0]?.message || 'Invalid input' });
+			return fail(400, { error: parsed.error.issues[0]?.message || 'Invalid input' });
 		}
 
 		if (!parsed.data.astronomyMember && !parsed.data.physicsMember) {

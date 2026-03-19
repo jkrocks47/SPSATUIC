@@ -1,15 +1,25 @@
 import { fail } from '@sveltejs/kit';
 import { eq, desc, and } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { galleryImages } from '$lib/server/db/schema';
+import { galleryImages, members } from '$lib/server/db/schema';
 import { galleryImageSchema } from '$lib/utils/validation';
 import { processAndStoreImage, deleteImage } from '$lib/server/images';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
 	const images = await db
-		.select()
+		.select({
+			id: galleryImages.id,
+			url: galleryImages.url,
+			thumbnailUrl: galleryImages.thumbnailUrl,
+			caption: galleryImages.caption,
+			photographer: galleryImages.photographer,
+			uploadDate: galleryImages.uploadDate,
+			imageGroupId: galleryImages.imageGroupId,
+			uploadedByName: members.displayName
+		})
 		.from(galleryImages)
+		.leftJoin(members, eq(galleryImages.uploadedBy, members.id))
 		.where(eq(galleryImages.clubType, 'astronomy'))
 		.orderBy(desc(galleryImages.uploadDate));
 

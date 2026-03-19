@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
+	import { canManageClub } from '$lib/utils/constants';
 
 	let { children } = $props();
 
@@ -30,6 +31,8 @@
 
 	let currentPath = $derived($page.url.pathname);
 	let member = $derived($page.data.currentUser);
+	let canManageAstronomy = $derived(canManageClub(member?.adminRole ?? null, 'astronomy'));
+	let canManagePhysics = $derived(canManageClub(member?.adminRole ?? null, 'physics'));
 </script>
 
 {#if !member?.adminRole}
@@ -60,6 +63,7 @@
 					{/each}
 				</div>
 
+				{#if canManageAstronomy}
 				<div class="nav-section">
 					<span class="nav-section-label">Astronomy</span>
 					{#each astronomyLinks as link}
@@ -68,7 +72,9 @@
 						</a>
 					{/each}
 				</div>
+				{/if}
 
+				{#if canManagePhysics}
 				<div class="nav-section">
 					<span class="nav-section-label">Physics</span>
 					{#each physicsLinks as link}
@@ -77,18 +83,23 @@
 						</a>
 					{/each}
 				</div>
+				{/if}
 
 				<div class="nav-section">
 					<span class="nav-section-label">Quick Links</span>
 					<a href="/dashboard" class="nav-item">
 						My Dashboard
 					</a>
+					{#if canManageAstronomy}
 					<a href="/astronomy" class="nav-item" target="_blank">
 						Astronomy Site ↗
 					</a>
+					{/if}
+					{#if canManagePhysics}
 					<a href="/physics" class="nav-item" target="_blank">
 						Physics Site ↗
 					</a>
+					{/if}
 				</div>
 			</nav>
 		</aside>
