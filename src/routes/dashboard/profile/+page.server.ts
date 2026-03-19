@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { members } from '$lib/server/db/schema';
 import { profileUpdateSchema } from '$lib/utils/validation';
+import { processAndStoreImage, deleteImage } from '$lib/server/images';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -19,7 +20,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 			astronomyMember: members.astronomyMember,
 			physicsMember: members.physicsMember,
 			eventPreferences: members.eventPreferences,
-			emailOptOut: members.emailOptOut
+			emailOptOut: members.emailOptOut,
+			profileImageUrl: members.profileImageUrl,
+			role: members.role
 		})
 		.from(members)
 		.where(eq(members.id, member.id))
@@ -73,5 +76,69 @@ export const actions: Actions = {
 			.where(eq(members.id, member.id));
 
 		return { success: true };
+	},
+
+	uploadPhoto: async ({ request, locals }) => {
+		const member = locals.member!;
+		const formData = await request.formData();
+		const file = formData.get('photo') as File | null;
+
+		if (!file || file.size === 0) {
+			return fail(400, { photoError: 'Please select an image to upload.' });
+		}
+
+		try {
+			// Delete old profile image if one exists
+			const current = await db
+				.select({ profileImageUrl: members.profileImageUrl })
+				.from(members)
+				.where(eq(members.id, member.id))
+				.limit(1);
+
+			if (current[0]?.profileImageUrl) {
+				const oldGroupId = current[0].profileImageUrl.replace('/api/images/', '').split('?')[0];
+				await deleteImage(oldGroupId);
+			}
+
+			const result = await processAndStoreImage(file);
+
+			await db
+				.update(members)
+				.set({
+					profileImageUrl: result.url,
+					updatedAt: new Date()
+				})
+				.where(eq(members.id, member.id));
+
+			return { photoSuccess: true };
+		} catch (err) {
+			const message = err instanceof Error ? err.message : 'Failed to upload image.';
+			return fail(400, { photoError: message });
+		}
+	},
+
+	removePhoto: async ({ locals }) => {
+		const member = locals.member!;
+
+		const current = await db
+			.select({ profileImageUrl: members.profileImageUrl })
+			.from(members)
+			.where(eq(members.id, member.id))
+			.limit(1);
+
+		if (current[0]?.profileImageUrl) {
+			const groupId = current[0].profileImageUrl.replace('/api/images/', '').split('?')[0];
+			await deleteImage(groupId);
+		}
+
+		await db
+			.update(members)
+			.set({
+				profileImageUrl: null,
+				updatedAt: new Date()
+			})
+			.where(eq(members.id, member.id));
+
+		return { photoRemoved: true };
 	}
 };
