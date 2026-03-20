@@ -178,6 +178,7 @@
 								<button class="action-btn-sm" onclick={() => editingId = editingId === event.id ? null : event.id}>Edit</button>
 								{#if event.checkinCode}
 									<button class="action-btn-sm qr" onclick={() => showQrId = showQrId === event.id ? null : event.id}>QR</button>
+									<a href="/admin/poster/{event.id}" target="_blank" class="action-btn-sm poster">Poster</a>
 								{/if}
 								<form method="POST" action="?/delete" use:enhance class="inline-form">
 									<input type="hidden" name="id" value={event.id} />
@@ -289,6 +290,17 @@
 	.action-btn-sm:hover { background: #f3f4f6; }
 	.action-btn-sm.qr { border-color: #c4b5fd; color: #7c3aed; }
 	.action-btn-sm.qr:hover { background: #f5f3ff; }
+
+	.action-btn-sm.poster {
+		border-color: #93c5fd;
+		color: #2563eb;
+		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+	}
+
+	.action-btn-sm.poster:hover { background: #eff6ff; }
+
 	.inline-form { display: inline; }
 	.delete-btn { background: none; border: 1px solid #fecaca; color: #dc2626; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.7rem; cursor: pointer; }
 	.delete-btn:hover { background: #fef2f2; }
