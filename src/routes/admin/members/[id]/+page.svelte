@@ -81,7 +81,7 @@
 				<tbody>
 					{#each data.attended as event}
 						<tr>
-							<td>{event.title}</td>
+							<td><a href="/admin/{event.clubType}/events/{event.eventId}" class="event-link">{event.title}</a></td>
 							<td>{event.date}</td>
 							<td><span class="club-mini" class:astro={event.clubType === 'astronomy'} class:phys={event.clubType === 'physics'}>{event.clubType}</span></td>
 						</tr>
@@ -102,7 +102,7 @@
 				<tbody>
 					{#each data.rsvps as rsvp}
 						<tr>
-							<td>{rsvp.title}</td>
+							<td><a href="/admin/{rsvp.clubType}/events/{rsvp.eventId}" class="event-link">{rsvp.title}</a></td>
 							<td>{rsvp.date}</td>
 							<td>
 								<span class="rsvp-badge" class:going={rsvp.status === 'going'} class:maybe={rsvp.status === 'maybe'} class:not-going={rsvp.status === 'not_going'}>
@@ -171,6 +171,9 @@
 	.mini-table { width: 100%; border-collapse: collapse; }
 	.mini-table th { font-size: 0.7rem; font-weight: 600; color: #6b7280; text-transform: uppercase; text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid #e5e7eb; }
 	.mini-table td { font-size: 0.825rem; color: #374151; padding: 0.5rem 0.75rem; border-bottom: 1px solid #f3f4f6; }
+
+	.event-link { color: #4f46e5; text-decoration: none; }
+	.event-link:hover { text-decoration: underline; }
 
 	.club-mini { font-size: 0.6rem; font-weight: 600; padding: 0.1rem 0.35rem; border-radius: 9999px; text-transform: capitalize; }
 	.club-mini.astro { background: #eef2ff; color: #4f46e5; }
