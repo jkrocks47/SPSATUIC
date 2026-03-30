@@ -246,22 +246,22 @@
 		z-index: 5;
 	}
 
-	/* Halftone image filter: high-contrast grainy treatment */
+	/* Halftone image filter: stylistic treatment */
 	.halftone-img {
-		filter: contrast(1.3) grayscale(0.4) url(#halftone);
+		filter: contrast(1.1) url(#halftone);
 		transition: filter 0.5s ease;
 	}
 
 	/* Safari/iOS: CSS-only fallback — SVG filter chain blocks main thread */
 	@supports (-webkit-touch-callout: none) {
 		.halftone-img {
-			filter: contrast(1.4) grayscale(0.5) brightness(1.1);
+			filter: contrast(1.1) brightness(1.05);
 		}
 	}
 
-	/* Remove halftone on hover to reveal full-color image */
+	/* Sharpen on hover to reveal crisp image */
 	.event-card-simple:hover .halftone-img {
-		filter: contrast(1.1) grayscale(0);
+		filter: contrast(1.05);
 	}
 
 	/* Event circle geometric framing */
