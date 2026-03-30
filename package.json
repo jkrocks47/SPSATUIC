@@ -5,7 +5,7 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
-		"start": "node build/index.js",
+		"start": "BODY_SIZE_LIMIT=26214400 node build/index.js",
 		"db:generate": "npx drizzle-kit generate",
 		"db:migrate": "npx drizzle-kit migrate",
 		"db:seed": "npx tsx src/lib/server/db/seed.ts",
