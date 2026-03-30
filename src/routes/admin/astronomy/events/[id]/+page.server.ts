@@ -47,7 +47,7 @@ export const actions: Actions = {
 		if (recipients.length === 0) return fail(400, { error: 'No eligible recipients.' });
 
 		const baseUrl = getBaseUrl();
-		const eventUrl = `${baseUrl}/astronomy/events/${params.id}`;
+		const eventUrl = `${baseUrl}/event/${params.id}`;
 		let sentCount = 0;
 
 		for (const recipient of recipients) {

@@ -23,7 +23,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 
 	const origin = url.origin;
 	const checkinUrl = `${origin}/checkin/${e.id}?code=${e.checkinCode}`;
-	const eventUrl = `${origin}/${e.clubType}/events/${e.id}`;
+	const eventUrl = `${origin}/event/${e.id}`;
 
 	return {
 		event: {
