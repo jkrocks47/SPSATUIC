@@ -73,26 +73,6 @@
 		style="background-image: radial-gradient(circle, #0a0a0f 0.8px, transparent 0.8px); background-size: 8px 8px;"
 	></div>
 
-	<!-- SVG halftone filter definition -->
-	<svg class="absolute w-0 h-0" aria-hidden="true">
-		<defs>
-			<filter id="halftone" x="0" y="0" width="100%" height="100%">
-				<feGaussianBlur in="SourceGraphic" stdDeviation="0.5" result="blur" />
-				<feComponentTransfer in="blur" result="posterize">
-					<feFuncR type="discrete" tableValues="0 0.25 0.5 0.75 1" />
-					<feFuncG type="discrete" tableValues="0 0.25 0.5 0.75 1" />
-					<feFuncB type="discrete" tableValues="0 0.25 0.5 0.75 1" />
-				</feComponentTransfer>
-				<feColorMatrix type="saturate" values="0.2" />
-				<feComponentTransfer>
-					<feFuncR type="linear" slope="1.4" intercept="-0.15" />
-					<feFuncG type="linear" slope="1.4" intercept="-0.15" />
-					<feFuncB type="linear" slope="1.4" intercept="-0.15" />
-				</feComponentTransfer>
-			</filter>
-		</defs>
-	</svg>
-
 	<div class="relative max-w-6xl mx-auto">
 		<!-- Section title — left-aligned, brutalist -->
 		<div class="mb-14">
@@ -153,11 +133,11 @@
 											src={event.imageUrl}
 											alt={event.title}
 											loading="lazy"
-											class="w-full h-full object-cover halftone-img transition-all duration-700 group-hover:scale-110 group-hover:halftone-off"
+											class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
 										/>
 									{:else}
 										<div
-											class="w-full h-full halftone-img transition-all duration-700 group-hover:halftone-off"
+											class="w-full h-full transition-all duration-700"
 											style="background: radial-gradient(circle, rgba(79,70,229,0.3), rgba(168,85,247,0.2), rgba(10,10,15,0.8));"
 										></div>
 									{/if}
@@ -246,23 +226,6 @@
 		z-index: 5;
 	}
 
-	/* Halftone image filter: stylistic treatment */
-	.halftone-img {
-		filter: contrast(1.1) url(#halftone);
-		transition: filter 0.5s ease;
-	}
-
-	/* Safari/iOS: CSS-only fallback — SVG filter chain blocks main thread */
-	@supports (-webkit-touch-callout: none) {
-		.halftone-img {
-			filter: contrast(1.1) brightness(1.05);
-		}
-	}
-
-	/* Sharpen on hover to reveal crisp image */
-	.event-card-simple:hover .halftone-img {
-		filter: contrast(1.05);
-	}
 
 	/* Event circle geometric framing */
 	.event-circle {
@@ -335,7 +298,7 @@
 		.event-card-simple:hover { transform: none; filter: none; }
 		.orbit-ring { transition: none; }
 		.event-card-simple:hover .orbit-ring { animation: none; }
-		.halftone-img { transition: none; }
+
 		.view-prompt { transition: none; }
 	}
 </style>
