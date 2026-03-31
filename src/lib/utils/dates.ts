@@ -1,5 +1,5 @@
 export function formatDate(date: string | Date): string {
-	const d = typeof date === 'string' ? new Date(date) : date;
+	const d = typeof date === 'string' ? new Date(date + 'T00:00:00') : date;
 	return d.toLocaleDateString('en-US', {
 		month: 'long',
 		day: 'numeric',
@@ -8,7 +8,7 @@ export function formatDate(date: string | Date): string {
 }
 
 export function formatShortDate(date: string | Date): { month: string; day: string } {
-	const d = typeof date === 'string' ? new Date(date) : date;
+	const d = typeof date === 'string' ? new Date(date + 'T00:00:00') : date;
 	return {
 		month: d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
 		day: d.getDate().toString().padStart(2, '0')
@@ -28,7 +28,7 @@ export function getCalendarDays(year: number, month: number): (number | null)[] 
 }
 
 export function isToday(date: string | Date): boolean {
-	const d = typeof date === 'string' ? new Date(date) : date;
+	const d = typeof date === 'string' ? new Date(date + 'T00:00:00') : date;
 	const today = new Date();
 	return (
 		d.getDate() === today.getDate() &&

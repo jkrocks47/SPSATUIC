@@ -6,7 +6,7 @@ import { getContentWithDefaults } from '$lib/server/content';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	try {
-		const today = new Date().toISOString().split('T')[0];
+		const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
 
 		const [upcomingEvents, spsInfoResult, spsOfficers, content] = await Promise.all([
 			db

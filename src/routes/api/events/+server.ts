@@ -8,7 +8,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	const club = url.searchParams.get('club');
 	const limit = parseInt(url.searchParams.get('limit') || '20');
 
-	const conditions = [eq(events.isPublished, true), gte(events.date, new Date().toISOString().split('T')[0])];
+	const conditions = [eq(events.isPublished, true), gte(events.date, new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' }))];
 
 	if (club === 'astronomy' || club === 'physics') {
 		conditions.push(eq(events.clubType, club));
