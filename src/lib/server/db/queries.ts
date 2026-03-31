@@ -408,3 +408,23 @@ export async function getAnnouncementRecipientCount(
 
 	return result[0]?.count ?? 0;
 }
+
+export async function getCorrectionRecipients(
+	eventId: string
+): Promise<{ id: string; email: string; firstName: string; unsubscribeToken: string }[]> {
+	return db
+		.select({
+			id: members.id,
+			email: members.email,
+			firstName: members.firstName,
+			unsubscribeToken: members.unsubscribeToken
+		})
+		.from(eventAnnouncementLogs)
+		.innerJoin(members, eq(eventAnnouncementLogs.memberId, members.id))
+		.where(
+			and(
+				eq(eventAnnouncementLogs.eventId, eventId),
+				eq(members.emailOptOut, false)
+			)
+		);
+}

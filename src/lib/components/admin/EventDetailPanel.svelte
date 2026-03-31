@@ -41,6 +41,9 @@
 	let announcementSending = $state(false);
 	let announcementResult = $state<{ success?: boolean; sentCount?: number; error?: string } | null>(null);
 
+	let correctionSending = $state(false);
+	let correctionResult = $state<{ success?: boolean; sentCount?: number; error?: string } | null>(null);
+
 	let statusFilter = $state<string>('all');
 	let sortBy = $state<'name' | 'status' | 'reliability'>('name');
 	let sortDir = $state<'asc' | 'desc'>('asc');
@@ -186,7 +189,7 @@
 				return async ({ result, update }) => {
 					announcementSending = false;
 					if (result.type === 'success') {
-						announcementResult = { success: true, sentCount: result.data?.sentCount };
+						announcementResult = { success: true, sentCount: result.data?.sentCount as number };
 					} else if (result.type === 'failure') {
 						announcementResult = { error: result.data?.error as string };
 					}
@@ -210,6 +213,52 @@
 			</form>
 		{/if}
 	</div>
+
+	<!-- Correction Section -->
+	{#if announcementAlreadySent}
+		<div class="announcement-card correction-card">
+			<div class="announcement-header">
+				<h2>Send Correction</h2>
+			</div>
+
+			{#if correctionResult?.success}
+				<p class="announcement-success">Correction sent to {correctionResult.sentCount} member{correctionResult.sentCount !== 1 ? 's' : ''}.</p>
+			{/if}
+
+			{#if correctionResult?.error}
+				<p class="announcement-error">{correctionResult.error}</p>
+			{/if}
+
+			<p class="announcement-info">
+				Send a correction email with the current event details to all members who received the original announcement.
+			</p>
+
+			<form method="POST" action="?/sendCorrection" use:enhance={() => {
+				correctionSending = true;
+				correctionResult = null;
+				return async ({ result, update }) => {
+					correctionSending = false;
+					if (result.type === 'success') {
+						correctionResult = { success: true, sentCount: result.data?.sentCount as number };
+					} else if (result.type === 'failure') {
+						correctionResult = { error: result.data?.error as string };
+					}
+					await update({ reset: false });
+				};
+			}}>
+				<button
+					type="submit"
+					class="announce-btn correction-btn"
+					disabled={correctionSending}
+					onclick={(e) => {
+						if (!confirm('Send correction email to all members who received the original announcement?')) e.preventDefault();
+					}}
+				>
+					{correctionSending ? 'Sending...' : 'Send Correction'}
+				</button>
+			</form>
+		</div>
+	{/if}
 
 	<!-- RSVP List -->
 	<div class="table-card">
@@ -521,6 +570,10 @@
 
 	.announce-btn:hover { background: #6d28d9; }
 	.announce-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+	.correction-card { border-color: #fde68a; }
+	.correction-btn { background: #d97706; }
+	.correction-btn:hover { background: #b45309; }
 
 	/* Table */
 	.table-card {

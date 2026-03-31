@@ -5,9 +5,10 @@ import { events, eventAnnouncementLogs } from '$lib/server/db/schema';
 import {
 	getEventDetailForAdmin,
 	getAnnouncementRecipients,
-	getAnnouncementRecipientCount
+	getAnnouncementRecipientCount,
+	getCorrectionRecipients
 } from '$lib/server/db/queries';
-import { sendEventAnnouncementEmail, getBaseUrl } from '$lib/server/email';
+import { sendEventAnnouncementEmail, sendEventCorrectionEmail, getBaseUrl } from '$lib/server/email';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -86,5 +87,52 @@ export const actions: Actions = {
 			.where(eq(events.id, params.id));
 
 		return { success: true, sentCount };
+	},
+
+	sendCorrection: async ({ params }) => {
+		const eventResult = await db
+			.select()
+			.from(events)
+			.where(eq(events.id, params.id))
+			.limit(1);
+
+		if (eventResult.length === 0) return fail(404, { error: 'Event not found.' });
+
+		const event = eventResult[0];
+
+		if (!event.announcementSentAt) {
+			return fail(400, { error: 'No announcement has been sent yet.' });
+		}
+
+		const recipients = await getCorrectionRecipients(params.id);
+
+		if (recipients.length === 0) return fail(400, { error: 'No recipients to send correction to.' });
+
+		const baseUrl = getBaseUrl();
+		const eventUrl = `${baseUrl}/event/${params.id}`;
+		let sentCount = 0;
+
+		for (const recipient of recipients) {
+			try {
+				await sendEventCorrectionEmail(
+					recipient.email,
+					recipient.firstName,
+					{
+						title: event.title,
+						date: event.date,
+						time: event.time,
+						location: event.location,
+						clubType: 'astronomy'
+					},
+					eventUrl,
+					recipient.unsubscribeToken
+				);
+				sentCount++;
+			} catch (err) {
+				console.error(`[Correction] Failed to send to ${recipient.email}:`, err);
+			}
+		}
+
+		return { success: true, sentCount, isCorrection: true };
 	}
 };
