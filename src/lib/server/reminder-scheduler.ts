@@ -49,9 +49,11 @@ async function processReminders(): Promise<void> {
 	try {
 		const in7Days = getChicagoDateString(7);
 		const in1Day = getChicagoDateString(1);
+		const today = getChicagoDateString(0);
 
 		await sendRemindersForDate(in7Days, '7_day');
 		await sendRemindersForDate(in1Day, '1_day');
+		await sendRemindersForDate(today, 'day_of');
 		await sendPreferenceReviewReminders();
 	} finally {
 		isProcessing = false;
@@ -74,7 +76,7 @@ interface PendingReminder {
 
 async function sendRemindersForDate(
 	targetDate: string,
-	reminderType: '7_day' | '1_day'
+	reminderType: '7_day' | '1_day' | 'day_of'
 ): Promise<void> {
 	const pendingReminders: PendingReminder[] = await db
 		.select({
@@ -120,11 +122,12 @@ async function sendRemindersForDate(
 	for (const reminder of pendingReminders) {
 		try {
 			const html = buildReminderEmail(reminder, reminderType);
-			const timeframe = reminderType === '7_day' ? 'is in one week' : 'is tomorrow';
 			const subject =
 				reminderType === '7_day'
 					? `Reminder: ${reminder.eventTitle} is in one week`
-					: `Tomorrow: ${reminder.eventTitle}`;
+					: reminderType === '1_day'
+						? `Tomorrow: ${reminder.eventTitle}`
+						: `Today: ${reminder.eventTitle}`;
 
 			const baseUrl = getBaseUrl();
 			const unsubscribeUrl = `${baseUrl}/unsubscribe?token=${reminder.unsubscribeToken}`;
@@ -190,12 +193,13 @@ async function sendPreferenceReviewReminders(): Promise<void> {
 
 	for (const member of staleMembers) {
 		try {
-			await sendPreferenceReviewEmail(member.email, member.firstName, member.unsubscribeToken);
-
+			// Update timestamp first to prevent duplicate sends on crash/retry
 			await db
 				.update(members)
 				.set({ preferenceReminderSentAt: new Date() })
 				.where(eq(members.id, member.id));
+
+			await sendPreferenceReviewEmail(member.email, member.firstName, member.unsubscribeToken);
 
 			console.log(
 				`[Reminders] Sent preference review to ${member.email}`
@@ -211,10 +215,10 @@ async function sendPreferenceReviewReminders(): Promise<void> {
 
 function buildReminderEmail(
 	data: PendingReminder,
-	reminderType: '7_day' | '1_day'
+	reminderType: '7_day' | '1_day' | 'day_of'
 ): string {
 	const baseUrl = getBaseUrl();
-	const timeframe = reminderType === '7_day' ? 'in one week' : 'tomorrow';
+	const timeframe = reminderType === '7_day' ? 'in one week' : reminderType === '1_day' ? 'tomorrow' : 'today';
 	const clubLabel =
 		data.eventClubType === 'astronomy' ? 'Astronomy Club' : 'Physics Club';
 

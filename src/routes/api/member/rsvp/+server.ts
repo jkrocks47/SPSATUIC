@@ -32,30 +32,18 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		error(404, 'Event not found.');
 	}
 
-	// Upsert RSVP
-	const existing = await db
-		.select({ id: eventRsvps.id })
-		.from(eventRsvps)
-		.where(
-			and(
-				eq(eventRsvps.eventId, parsed.data.eventId),
-				eq(eventRsvps.memberId, locals.member.id)
-			)
-		)
-		.limit(1);
-
-	if (existing.length > 0) {
-		await db
-			.update(eventRsvps)
-			.set({ status: parsed.data.status, updatedAt: new Date() })
-			.where(eq(eventRsvps.id, existing[0].id));
-	} else {
-		await db.insert(eventRsvps).values({
+	// Atomic upsert RSVP
+	await db
+		.insert(eventRsvps)
+		.values({
 			eventId: parsed.data.eventId,
 			memberId: locals.member.id,
 			status: parsed.data.status
+		})
+		.onConflictDoUpdate({
+			target: [eventRsvps.eventId, eventRsvps.memberId],
+			set: { status: parsed.data.status, updatedAt: new Date() }
 		});
-	}
 
 	return json({ success: true, status: parsed.data.status });
 };

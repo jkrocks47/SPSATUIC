@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
 import bcrypt from 'bcryptjs';
-import { eq, and, gt } from 'drizzle-orm';
+import { eq, and, gt, isNull } from 'drizzle-orm';
 import { db } from './db';
 import {
 	members,
@@ -149,25 +149,22 @@ export async function checkVerificationToken(
 export async function validateVerificationToken(
 	token: string
 ): Promise<{ memberId: string } | null> {
-	const result = await db
-		.select()
-		.from(emailVerificationTokens)
+	// Atomic: delete the token and return it only if valid and unexpired
+	const deleted = await db
+		.delete(emailVerificationTokens)
 		.where(
 			and(eq(emailVerificationTokens.token, token), gt(emailVerificationTokens.expiresAt, new Date()))
 		)
-		.limit(1);
+		.returning({ memberId: emailVerificationTokens.memberId });
 
-	if (result.length === 0) return null;
+	if (deleted.length === 0) return null;
 
-	const record = result[0];
+	const { memberId } = deleted[0];
 
 	// Mark member as verified
-	await db.update(members).set({ emailVerified: true }).where(eq(members.id, record.memberId));
+	await db.update(members).set({ emailVerified: true }).where(eq(members.id, memberId));
 
-	// Delete the used token
-	await db.delete(emailVerificationTokens).where(eq(emailVerificationTokens.id, record.id));
-
-	return { memberId: record.memberId };
+	return { memberId };
 }
 
 // --- Password Reset Tokens ---
@@ -193,27 +190,20 @@ export async function generatePasswordResetToken(memberId: string): Promise<stri
 export async function validatePasswordResetToken(
 	token: string
 ): Promise<{ memberId: string } | null> {
+	// Atomic: mark token as used only if it's valid, unexpired, and not yet used
 	const result = await db
-		.select()
-		.from(passwordResetTokens)
+		.update(passwordResetTokens)
+		.set({ usedAt: new Date() })
 		.where(
 			and(
 				eq(passwordResetTokens.token, token),
-				gt(passwordResetTokens.expiresAt, new Date())
+				gt(passwordResetTokens.expiresAt, new Date()),
+				isNull(passwordResetTokens.usedAt)
 			)
 		)
-		.limit(1);
+		.returning({ memberId: passwordResetTokens.memberId });
 
 	if (result.length === 0) return null;
 
-	const record = result[0];
-	if (record.usedAt) return null;
-
-	// Mark token as used
-	await db
-		.update(passwordResetTokens)
-		.set({ usedAt: new Date() })
-		.where(eq(passwordResetTokens.id, record.id));
-
-	return { memberId: record.memberId };
+	return { memberId: result[0].memberId };
 }

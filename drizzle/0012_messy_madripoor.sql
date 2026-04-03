@@ -1,0 +1,1 @@
+ALTER TYPE "public"."reminder_type" ADD VALUE 'day_of';

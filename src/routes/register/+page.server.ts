@@ -112,7 +112,7 @@ export const actions: Actions = {
 			path: '/',
 			httpOnly: true,
 			sameSite: 'lax',
-			secure: false,
+			secure: process.env.NODE_ENV === 'production',
 			maxAge: 30 * 24 * 60 * 60
 		});
 

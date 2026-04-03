@@ -79,16 +79,16 @@ export const load: PageServerLoad = async ({ params, url, locals }) => {
 			joinedClub = true;
 		}
 
-		await db.insert(eventCheckins).values({
+		const inserted = await db.insert(eventCheckins).values({
 			eventId: event.id,
 			memberId: locals.member.id
-		});
+		}).onConflictDoNothing().returning({ id: eventCheckins.id });
 
 		return {
 			event: { id: event.id, title: event.title, date: event.date, clubType: event.clubType },
-			alreadyCheckedIn: false,
-			success: true,
-			joinedClub,
+			alreadyCheckedIn: inserted.length === 0,
+			success: inserted.length > 0,
+			joinedClub: inserted.length > 0 && joinedClub,
 			hasQuestions: false,
 			questions: [] as CheckinQuestion[],
 			code
@@ -140,22 +140,6 @@ export const actions: Actions = {
 			return fail(400, { error: 'Invalid check-in code.' });
 		}
 
-		// Check if already checked in
-		const existing = await db
-			.select({ id: eventCheckins.id })
-			.from(eventCheckins)
-			.where(
-				and(
-					eq(eventCheckins.eventId, event.id),
-					eq(eventCheckins.memberId, locals.member.id)
-				)
-			)
-			.limit(1);
-
-		if (existing.length > 0) {
-			return fail(400, { error: 'Already checked in.' });
-		}
-
 		// Auto-join club if not already a member
 		let joinedClub = false;
 		const isMember =
@@ -190,11 +174,16 @@ export const actions: Actions = {
 			}
 		}
 
-		await db.insert(eventCheckins).values({
+		// Atomic insert with conflict handling to prevent race conditions
+		const inserted = await db.insert(eventCheckins).values({
 			eventId: event.id,
 			memberId: locals.member.id,
 			questionResponses: Object.keys(responses).length > 0 ? responses : null
-		});
+		}).onConflictDoNothing().returning({ id: eventCheckins.id });
+
+		if (inserted.length === 0) {
+			return fail(400, { error: 'Already checked in.' });
+		}
 
 		return { success: true, joinedClub };
 	}

@@ -71,12 +71,30 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
-	updateRole: async ({ request, params }) => {
+	updateRole: async ({ request, params, locals }) => {
+		const adminRole = locals.member?.adminRole;
+		if (!adminRole) {
+			return fail(403, { error: 'Unauthorized.' });
+		}
+
 		const formData = await request.formData();
 		const role = formData.get('role') as 'member' | 'board';
 
 		if (!['member', 'board'].includes(role)) {
 			return fail(400, { error: 'Invalid role.' });
+		}
+
+		// Club-scoped admins can only update members in their club
+		if (adminRole !== 'super_admin') {
+			const target = await db.select({ astronomyMember: members.astronomyMember, physicsMember: members.physicsMember }).from(members).where(eq(members.id, params.id)).limit(1);
+			if (target.length === 0) return fail(404, { error: 'Member not found.' });
+			const m = target[0];
+			if (adminRole === 'astronomy_admin' && !m.astronomyMember) {
+				return fail(403, { error: 'You can only manage members in your club.' });
+			}
+			if (adminRole === 'physics_admin' && !m.physicsMember) {
+				return fail(403, { error: 'You can only manage members in your club.' });
+			}
 		}
 
 		await db

@@ -320,14 +320,17 @@ export async function getInterestBreakdown(): Promise<InterestBreakdownResult> {
 		`)
 	]);
 
+	interface InterestRow { preference: string; total: number; astronomy_count: number; physics_count: number }
+	interface CountRow { active_count: number }
+
 	return {
-		interests: interestRows.rows.map((r: any) => ({
+		interests: (interestRows.rows as unknown as InterestRow[]).map((r) => ({
 			preference: r.preference,
 			total: r.total,
 			astronomyCount: r.astronomy_count,
 			physicsCount: r.physics_count
 		})),
-		activeMemberCount: (countRows.rows[0] as any)?.active_count ?? 0
+		activeMemberCount: (countRows.rows[0] as unknown as CountRow | undefined)?.active_count ?? 0
 	};
 }
 

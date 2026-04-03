@@ -20,6 +20,10 @@ export const actions: Actions = {
 			return fail(400, { error: 'All fields are required.' });
 		}
 
+		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+			return fail(400, { error: 'Please enter a valid email address.' });
+		}
+
 		try {
 			const recipientEmails = await getBoardEmails('physics');
 			await sendContactEmail(name, email, message, recipientEmails);

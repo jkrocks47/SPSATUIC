@@ -43,6 +43,11 @@ export const actions: Actions = {
 		if (eventResult.length === 0) return fail(404, { error: 'Event not found.' });
 
 		const event = eventResult[0];
+
+		if (event.announcementSentAt) {
+			return fail(400, { error: 'Announcement has already been sent for this event.' });
+		}
+
 		const recipients = await getAnnouncementRecipients(params.id, 'physics');
 
 		if (recipients.length === 0) return fail(400, { error: 'No eligible recipients.' });

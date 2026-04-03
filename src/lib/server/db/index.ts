@@ -15,9 +15,11 @@ export function getDb() {
 	return _db;
 }
 
+type DbInstance = ReturnType<typeof drizzle<typeof schema>>;
+
 // For backwards compatibility — lazy getter
-export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
-	get(_target, prop) {
-		return (getDb() as any)[prop];
+export const db = new Proxy({} as DbInstance, {
+	get(_target, prop: string | symbol) {
+		return (getDb() as unknown as Record<string | symbol, unknown>)[prop];
 	}
-});
+}) as DbInstance;

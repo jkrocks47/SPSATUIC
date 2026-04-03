@@ -1,4 +1,4 @@
-import { fail } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { members } from '$lib/server/db/schema';
@@ -30,6 +30,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 		.from(members)
 		.where(eq(members.id, member.id))
 		.limit(1);
+
+	if (result.length === 0) {
+		error(404, 'Profile not found');
+	}
 
 	const interestOpts = await getInterestOptions();
 	return { profile: result[0], interestOptions: interestOpts };

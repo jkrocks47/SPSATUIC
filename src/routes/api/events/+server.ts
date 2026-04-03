@@ -6,7 +6,7 @@ import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url }) => {
 	const club = url.searchParams.get('club');
-	const limit = parseInt(url.searchParams.get('limit') || '20');
+	const limit = Math.max(1, Math.min(parseInt(url.searchParams.get('limit') || '20') || 20, 50));
 
 	const conditions = [eq(events.isPublished, true), gte(events.date, new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' }))];
 
@@ -19,7 +19,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		.from(events)
 		.where(and(...conditions))
 		.orderBy(asc(events.date))
-		.limit(Math.min(limit, 50));
+		.limit(limit);
 
 	return json(result);
 };
