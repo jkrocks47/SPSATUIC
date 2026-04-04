@@ -3,15 +3,30 @@ import { fail } from '@sveltejs/kit';
 import { sendContactEmail } from '$lib/server/email';
 import { getBoardEmails } from '$lib/server/db/queries';
 import { getContentWithDefaults } from '$lib/server/content';
+import { checkHoneypot, checkRateLimit, checkSubmissionTiming, generateChallenge, checkProofOfWork } from '$lib/server/security';
 
 export const load: PageServerLoad = async () => {
 	const content = await getContentWithDefaults('astronomy', 'contact');
-	return { content };
+	const pow = generateChallenge();
+	return { content, challenge: pow.challenge, difficulty: pow.difficulty };
 };
 
 export const actions: Actions = {
-	default: async ({ request }) => {
+	default: async (event) => {
+		const rateLimited = checkRateLimit(event, 'contact');
+		if (rateLimited) return rateLimited;
+
+		const { request } = event;
 		const data = await request.formData();
+
+		const honeypotFail = checkHoneypot(data);
+		if (honeypotFail) return honeypotFail;
+
+		const timingFail = checkSubmissionTiming(data);
+		if (timingFail) return timingFail;
+
+		const powFail = await checkProofOfWork(data);
+		if (powFail) return powFail;
 		const name = data.get('name')?.toString()?.trim();
 		const email = data.get('email')?.toString()?.trim();
 		const message = data.get('message')?.toString()?.trim();

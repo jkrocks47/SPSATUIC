@@ -5,11 +5,23 @@ import { members } from '$lib/server/db/schema';
 import { generatePasswordResetToken } from '$lib/server/auth';
 import { sendPasswordResetEmail } from '$lib/server/email';
 import { passwordResetRequestSchema } from '$lib/utils/validation';
+import { checkHoneypot, checkRateLimit, checkSubmissionTiming } from '$lib/server/security';
 import type { Actions } from './$types';
 
 export const actions: Actions = {
-	request: async ({ request }) => {
+	request: async (event) => {
+		const rateLimited = checkRateLimit(event, 'auth-strict');
+		if (rateLimited) return rateLimited;
+
+		const { request } = event;
 		const formData = await request.formData();
+
+		const honeypotFail = checkHoneypot(formData);
+		if (honeypotFail) return honeypotFail;
+
+		const timingFail = checkSubmissionTiming(formData);
+		if (timingFail) return timingFail;
+
 		const data = { email: (formData.get('email') as string)?.toLowerCase().trim() };
 
 		const parsed = passwordResetRequestSchema.safeParse(data);

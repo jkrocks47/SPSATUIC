@@ -3,6 +3,7 @@ import { eq, and } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { events, eventCheckins, members } from '$lib/server/db/schema';
 import type { CheckinQuestion } from '$lib/server/db/schema';
+import { checkHoneypot, checkRateLimit, checkSubmissionTiming } from '$lib/server/security';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, url, locals }) => {
@@ -108,12 +109,23 @@ export const load: PageServerLoad = async ({ params, url, locals }) => {
 };
 
 export const actions: Actions = {
-	checkin: async ({ request, params, locals }) => {
+	checkin: async (requestEvent) => {
+		const rateLimited = checkRateLimit(requestEvent, 'checkin');
+		if (rateLimited) return rateLimited;
+
+		const { request, params, locals } = requestEvent;
+
 		if (!locals.member) {
 			return fail(401, { error: 'Not authenticated.' });
 		}
 
 		const formData = await request.formData();
+
+		const honeypotFail = checkHoneypot(formData);
+		if (honeypotFail) return honeypotFail;
+
+		const timingFail = checkSubmissionTiming(formData);
+		if (timingFail) return timingFail;
 		const code = formData.get('code') as string;
 
 		// Re-validate event and code

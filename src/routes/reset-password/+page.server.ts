@@ -4,6 +4,7 @@ import { db } from '$lib/server/db';
 import { members } from '$lib/server/db/schema';
 import { validatePasswordResetToken, hashPassword } from '$lib/server/auth';
 import { passwordResetSchema } from '$lib/utils/validation';
+import { checkHoneypot, checkRateLimit, checkSubmissionTiming } from '$lib/server/security';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ url }) => {
@@ -15,8 +16,18 @@ export const load: PageServerLoad = async ({ url }) => {
 };
 
 export const actions: Actions = {
-	reset: async ({ request }) => {
+	reset: async (event) => {
+		const rateLimited = checkRateLimit(event, 'auth-moderate');
+		if (rateLimited) return rateLimited;
+
+		const { request } = event;
 		const formData = await request.formData();
+
+		const honeypotFail = checkHoneypot(formData);
+		if (honeypotFail) return honeypotFail;
+
+		const timingFail = checkSubmissionTiming(formData);
+		if (timingFail) return timingFail;
 
 		const data = {
 			token: formData.get('token') as string,

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { canManageClub } from '$lib/utils/constants';
+	import BotProtection from '$lib/components/shared/BotProtection.svelte';
 
 	let { data, form } = $props();
 
@@ -34,6 +35,7 @@
 			{/if}
 
 			<form method="POST" action="?/login" use:enhance>
+				<BotProtection />
 				<div class="form-group">
 					<label for="email">Email</label>
 					<input

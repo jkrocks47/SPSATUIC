@@ -4,6 +4,7 @@ import { db } from '$lib/server/db';
 import { members } from '$lib/server/db/schema';
 import { verifyPassword, createMemberSession } from '$lib/server/auth';
 import { memberLoginSchema } from '$lib/utils/validation';
+import { checkHoneypot, checkRateLimit, checkSubmissionTiming } from '$lib/server/security';
 import type { Actions, PageServerLoad } from './$types';
 
 function safeRedirect(redirectTo: string | null): string {
@@ -22,8 +23,19 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 };
 
 export const actions: Actions = {
-	login: async ({ request, cookies }) => {
+	login: async (event) => {
+		const rateLimited = checkRateLimit(event, 'auth-strict');
+		if (rateLimited) return rateLimited;
+
+		const { request, cookies } = event;
 		const formData = await request.formData();
+
+		const honeypotFail = checkHoneypot(formData);
+		if (honeypotFail) return honeypotFail;
+
+		const timingFail = checkSubmissionTiming(formData);
+		if (timingFail) return timingFail;
+
 		const redirectTo = formData.get('redirectTo') as string | null;
 
 		const data = {

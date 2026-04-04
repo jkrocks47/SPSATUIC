@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import BotProtection from '$lib/components/shared/BotProtection.svelte';
 	let { form, data } = $props();
 </script>
 
@@ -103,6 +104,7 @@
 					{/if}
 
 					<form method="POST" use:enhance class="space-y-5">
+						<BotProtection challenge={data.challenge} difficulty={data.difficulty} />
 						<div>
 							<label for="name" class="font-body text-xs text-physics-dark/40 uppercase tracking-wider block mb-2">
 								Name

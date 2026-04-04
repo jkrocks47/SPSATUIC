@@ -1,5 +1,6 @@
 <script lang="ts">
 	import GlassPanel from '$lib/components/astronomy/GlassPanel.svelte';
+	import BotProtection from '$lib/components/shared/BotProtection.svelte';
 	import type { ActionData, PageData } from './$types';
 
 	let { form, data }: { form: ActionData; data: PageData } = $props();
@@ -107,6 +108,7 @@
 					{/if}
 
 					<form method="POST" class="space-y-5" onsubmit={() => submitting = true}>
+						<BotProtection challenge={data.challenge} difficulty={data.difficulty} />
 						<div>
 							<label for="name" class="font-mono text-[10px] tracking-[0.2em] text-astro-cream/40 block mb-2">
 								NAME

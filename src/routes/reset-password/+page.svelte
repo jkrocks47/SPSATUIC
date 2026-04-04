@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import BotProtection from '$lib/components/shared/BotProtection.svelte';
 
 	let { data, form } = $props();
 </script>
@@ -24,6 +25,7 @@
 			{/if}
 
 			<form method="POST" action="?/reset" use:enhance>
+				<BotProtection />
 				<input type="hidden" name="token" value={data.token} />
 
 				<div class="form-group">

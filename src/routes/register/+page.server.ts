@@ -11,6 +11,7 @@ import {
 import { sendVerificationEmail } from '$lib/server/email';
 import { registrationSchema } from '$lib/utils/validation';
 import { getInterestOptions } from '$lib/server/db/queries';
+import { checkHoneypot, checkRateLimit, checkSubmissionTiming, generateChallenge, checkProofOfWork } from '$lib/server/security';
 import type { Actions, PageServerLoad } from './$types';
 
 function safeRedirect(redirectTo: string | null): string {
@@ -26,12 +27,27 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		throw redirect(303, safeRedirect(redirectTo));
 	}
 	const interestOpts = await getInterestOptions();
-	return { redirectTo, interestOptions: interestOpts };
+	const pow = generateChallenge();
+	return { redirectTo, interestOptions: interestOpts, challenge: pow.challenge, difficulty: pow.difficulty };
 };
 
 export const actions: Actions = {
-	register: async ({ request, cookies }) => {
+	register: async (event) => {
+		const rateLimited = checkRateLimit(event, 'auth-moderate');
+		if (rateLimited) return rateLimited;
+
+		const { request, cookies } = event;
 		const formData = await request.formData();
+
+		const honeypotFail = checkHoneypot(formData);
+		if (honeypotFail) return honeypotFail;
+
+		const timingFail = checkSubmissionTiming(formData);
+		if (timingFail) return timingFail;
+
+		const powFail = await checkProofOfWork(formData);
+		if (powFail) return powFail;
+
 		const redirectTo = formData.get('redirectTo') as string | null;
 
 		const data = {

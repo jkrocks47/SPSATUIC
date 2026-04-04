@@ -6,13 +6,23 @@ import {
 	startReminderScheduler,
 	stopReminderScheduler
 } from '$lib/server/reminder-scheduler';
+import {
+	startRateLimitCleanup,
+	stopRateLimitCleanup
+} from '$lib/server/security';
 
 // Start the reminder scheduler once when the server boots
 startReminderScheduler();
 
+// Start periodic cleanup of expired rate limit entries
+startRateLimitCleanup();
+
 // Clean up on HMR in dev
 if (import.meta.hot) {
-	import.meta.hot.dispose(() => stopReminderScheduler());
+	import.meta.hot.dispose(() => {
+		stopReminderScheduler();
+		stopRateLimitCleanup();
+	});
 }
 
 export const handle: Handle = async ({ event, resolve }) => {

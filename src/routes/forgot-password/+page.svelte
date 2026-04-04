@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import BotProtection from '$lib/components/shared/BotProtection.svelte';
 
 	let { form } = $props();
 </script>
@@ -25,6 +26,7 @@
 			<p class="description">Enter your email address and we'll send you a link to reset your password.</p>
 
 			<form method="POST" action="?/request" use:enhance>
+				<BotProtection />
 				<div class="form-group">
 					<label for="email">Email</label>
 					<input type="email" id="email" name="email" required placeholder="netid@uic.edu" />

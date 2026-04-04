@@ -5,6 +5,7 @@ import { members } from '$lib/server/db/schema';
 import { verifyPassword, createMemberSession, destroyMemberSession } from '$lib/server/auth';
 import { loginSchema } from '$lib/utils/validation';
 import { getInterestBreakdown, getMembershipStats, getInterestOptions } from '$lib/server/db/queries';
+import { checkHoneypot, checkRateLimit, checkSubmissionTiming } from '$lib/server/security';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -31,8 +32,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-	login: async ({ request, cookies }) => {
+	login: async (event) => {
+		const rateLimited = checkRateLimit(event, 'auth-strict');
+		if (rateLimited) return rateLimited;
+
+		const { request, cookies } = event;
 		const formData = await request.formData();
+
+		const honeypotFail = checkHoneypot(formData);
+		if (honeypotFail) return honeypotFail;
+
+		const timingFail = checkSubmissionTiming(formData);
+		if (timingFail) return timingFail;
+
 		const data = Object.fromEntries(formData);
 
 		const parsed = loginSchema.safeParse(data);

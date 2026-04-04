@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import BotProtection from '$lib/components/shared/BotProtection.svelte';
 
 	let { form, data } = $props();
 </script>
@@ -20,6 +21,7 @@
 		{/if}
 
 		<form method="POST" action="?/login" use:enhance>
+			<BotProtection />
 			{#if data.redirectTo}
 				<input type="hidden" name="redirectTo" value={data.redirectTo} />
 			{/if}
