@@ -85,13 +85,13 @@ export const galleryImageSchema = z.object({
 	caption: z.string().optional(),
 	clubType: z.enum(['astronomy', 'physics']),
 	photographer: z.string().optional(),
-	raCoord: z.string().max(50).optional(),
-	decCoord: z.string().max(50).optional(),
-	exposureTime: z.string().max(50).optional(),
-	equipment: z.string().max(100).optional(),
-	iso: z.string().max(20).optional(),
-	aperture: z.string().max(20).optional(),
-	observationDate: z.string().max(50).optional()
+	raCoord: z.string().max(300).optional(),
+	decCoord: z.string().max(300).optional(),
+	exposureTime: z.string().max(300).optional(),
+	equipment: z.string().max(300).optional(),
+	iso: z.string().max(300).optional(),
+	aperture: z.string().max(300).optional(),
+	observationDate: z.string().max(300).optional()
 });
 
 export const officerSchema = z.object({
