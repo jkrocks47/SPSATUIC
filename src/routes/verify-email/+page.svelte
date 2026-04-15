@@ -61,8 +61,8 @@
 			<h2>Check Your Email</h2>
 			<p>We've sent a verification link to your UIC email address. Please check your inbox and click the link to verify your account.</p>
 
-			<div class="notice">
-				<p>Outlook may take 3-4 minutes to display the email. Be sure to check your spam/junk folder.</p>
+			<div class="spam-notice">
+				⚠ Check your <strong>junk or spam folder</strong> — <strong>Outlook</strong> often filters these emails. It may also take 3–4 minutes to arrive.
 			</div>
 
 			{#if form?.resent}
@@ -156,19 +156,18 @@
 		margin-bottom: 0.5rem;
 	}
 
-	.notice {
+	.spam-notice {
 		margin-top: 1rem;
 		padding: 0.75rem 1rem;
-		background: rgba(79, 70, 229, 0.08);
-		border: 1px solid rgba(79, 70, 229, 0.15);
+		background: rgba(245, 158, 11, 0.1);
+		border: 1px solid rgba(245, 158, 11, 0.35);
 		border-radius: 0.5rem;
+		font-size: 0.85rem;
+		color: #fcd34d;
+		line-height: 1.5;
 	}
 
-	.notice p {
-		font-size: 0.8rem;
-		color: #a5b4fc;
-		margin: 0;
-	}
+	.spam-notice strong { color: #fde68a; }
 
 	.resend-btn {
 		display: inline-block;

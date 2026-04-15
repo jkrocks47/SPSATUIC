@@ -18,6 +18,9 @@
 			<div class="success-message">
 				If an account with that email exists, we've sent a password reset link. Please check your inbox.
 			</div>
+			<div class="spam-notice">
+				⚠ Check your <strong>junk or spam folder</strong> — <strong>Outlook</strong> often filters these emails. It may also take 3–4 minutes to arrive.
+			</div>
 		{:else}
 			{#if form?.error}
 				<div class="error-message">{form.error}</div>
@@ -159,4 +162,17 @@
 	.back-link:hover {
 		text-decoration: underline;
 	}
+
+	.spam-notice {
+		margin-top: 1rem;
+		padding: 0.75rem 1rem;
+		background: rgba(245, 158, 11, 0.1);
+		border: 1px solid rgba(245, 158, 11, 0.35);
+		border-radius: 0.5rem;
+		font-size: 0.85rem;
+		color: #fcd34d;
+		line-height: 1.5;
+	}
+
+	.spam-notice strong { color: #fde68a; }
 </style>
