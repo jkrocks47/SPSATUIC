@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatDate } from '$lib/utils/dates';
+	import { renderMarkdown } from '$lib/utils/markdown';
 	import GlassPanel from '$lib/components/astronomy/GlassPanel.svelte';
 	import RSVPButtons from '$lib/components/shared/RSVPButtons.svelte';
 
@@ -85,8 +86,8 @@
 			{/if}
 
 			{#if event.description}
-				<div class="font-body text-base text-astro-cream/70 leading-relaxed whitespace-pre-wrap">
-					{event.description}
+				<div class="font-body text-base text-astro-cream/70 leading-relaxed prose-description">
+					{@html renderMarkdown(event.description)}
 				</div>
 			{/if}
 
@@ -103,3 +104,19 @@
 		</GlassPanel>
 	</div>
 </section>
+
+<style>
+	.prose-description :global(p) {
+		margin: 0 0 0.75em;
+	}
+	.prose-description :global(p:last-child) {
+		margin-bottom: 0;
+	}
+	.prose-description :global(a) {
+		color: #22d3ee;
+		text-decoration: underline;
+	}
+	.prose-description :global(a:hover) {
+		color: #67e8f9;
+	}
+</style>

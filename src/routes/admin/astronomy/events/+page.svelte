@@ -97,6 +97,7 @@
 					<div class="form-group full-width">
 						<label for="description">Description</label>
 						<textarea id="description" name="description" rows="4"></textarea>
+						<p class="field-hint">Supports markdown links: <code>[Link text](https://example.com)</code></p>
 					</div>
 
 					<div class="form-group">
@@ -244,6 +245,7 @@
 											<div class="form-group full-width">
 												<label>Description</label>
 												<textarea name="description" rows="3">{event.description || ''}</textarea>
+												<p class="field-hint">Supports markdown links: <code>[Link text](https://example.com)</code></p>
 											</div>
 											<div class="form-group">
 												<label>Date *</label>
@@ -383,6 +385,19 @@
 		font-weight: 500;
 		color: #374151;
 		margin-bottom: 0.3rem;
+	}
+
+	.field-hint {
+		margin: 0.3rem 0 0;
+		font-size: 0.75rem;
+		color: #6b7280;
+	}
+
+	.field-hint code {
+		font-family: monospace;
+		background: #f3f4f6;
+		padding: 0.1em 0.3em;
+		border-radius: 3px;
 	}
 
 	.form-group input[type='text'],

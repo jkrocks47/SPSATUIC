@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatDate } from '$lib/utils/dates';
+	import { renderMarkdown } from '$lib/utils/markdown';
 	import RSVPButtons from '$lib/components/shared/RSVPButtons.svelte';
 
 	let { data } = $props();
@@ -84,8 +85,8 @@
 			{/if}
 
 			{#if event.description}
-				<div class="font-body text-base text-physics-dark/70 leading-relaxed whitespace-pre-wrap">
-					{event.description}
+				<div class="font-body text-base text-physics-dark/70 leading-relaxed prose-description">
+					{@html renderMarkdown(event.description)}
 				</div>
 			{/if}
 
@@ -106,6 +107,20 @@
 </section>
 
 <style>
+	.prose-description :global(p) {
+		margin: 0 0 0.75em;
+	}
+	.prose-description :global(p:last-child) {
+		margin-bottom: 0;
+	}
+	.prose-description :global(a) {
+		color: #0e79b2;
+		text-decoration: underline;
+	}
+	.prose-description :global(a:hover) {
+		color: #0b6494;
+	}
+
 	.physics-rsvp :global(.rsvp-buttons) {
 		border-top-color: #e5e7eb;
 	}

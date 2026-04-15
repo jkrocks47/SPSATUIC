@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatDate } from '$lib/utils/dates';
+	import { renderMarkdown } from '$lib/utils/markdown';
 	import RSVPButtons from '$lib/components/shared/RSVPButtons.svelte';
 
 	let { data } = $props();
@@ -64,7 +65,7 @@
 
 			<!-- Description -->
 			{#if event.description}
-				<p class="description">{event.description}</p>
+				<div class="description">{@html renderMarkdown(event.description)}</div>
 			{/if}
 
 			<!-- CTA Area -->
@@ -303,15 +304,37 @@
 		font-size: 0.85rem;
 		line-height: 1.6;
 		margin: 0 0 1rem;
-		white-space: pre-wrap;
+	}
+
+	.description :global(p) {
+		margin: 0 0 0.6em;
+	}
+	.description :global(p:last-child) {
+		margin-bottom: 0;
 	}
 
 	.astronomy .description {
 		color: rgba(245, 240, 232, 0.5);
 	}
 
+	.astronomy .description :global(a) {
+		color: #22d3ee;
+		text-decoration: underline;
+	}
+	.astronomy .description :global(a:hover) {
+		color: #67e8f9;
+	}
+
 	.physics .description {
 		color: #6b7280;
+	}
+
+	.physics .description :global(a) {
+		color: #0e79b2;
+		text-decoration: underline;
+	}
+	.physics .description :global(a:hover) {
+		color: #0b6494;
 	}
 
 	/* CTA area */

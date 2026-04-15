@@ -92,6 +92,7 @@
 					<div class="form-group full-width">
 						<label for="description">Description</label>
 						<textarea id="description" name="description" rows="4"></textarea>
+						<p class="field-hint">Supports markdown links: <code>[Link text](https://example.com)</code></p>
 					</div>
 					<div class="form-group">
 						<label for="date">Date *</label>
@@ -219,7 +220,7 @@
 										<input type="hidden" name="id" value={event.id} />
 										<div class="form-grid">
 											<div class="form-group full-width"><label>Title *</label><input type="text" name="title" required value={event.title} /></div>
-											<div class="form-group full-width"><label>Description</label><textarea name="description" rows="3">{event.description || ''}</textarea></div>
+											<div class="form-group full-width"><label>Description</label><textarea name="description" rows="3">{event.description || ''}</textarea><p class="field-hint">Supports markdown links: <code>[Link text](https://example.com)</code></p></div>
 											<div class="form-group"><label>Date *</label><input type="date" name="date" required value={event.date} /></div>
 											<div class="form-group"><label>Time</label><input type="text" name="time" value={event.time || ''} /></div>
 											<div class="form-group"><label>Location</label><input type="text" name="location" value={event.location || ''} /></div>
@@ -271,6 +272,8 @@
 	.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 	.full-width { grid-column: 1 / -1; }
 	.form-group label { display: block; font-size: 0.8rem; font-weight: 500; color: #374151; margin-bottom: 0.3rem; }
+	.field-hint { margin: 0.3rem 0 0; font-size: 0.75rem; color: #6b7280; }
+	.field-hint code { font-family: monospace; background: #f3f4f6; padding: 0.1em 0.3em; border-radius: 3px; }
 	.form-group input[type='text'], .form-group input[type='date'], .form-group input[type='url'], .form-group input[type='number'], .form-group input[type='file'], .form-group textarea { width: 100%; padding: 0.5rem 0.65rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.85rem; color: #374151; }
 	.form-group textarea { resize: vertical; }
 	.form-group input:focus, .form-group textarea:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
