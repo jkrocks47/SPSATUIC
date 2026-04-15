@@ -71,21 +71,8 @@
 			<!-- CTA Area -->
 			{#if !data.isPast}
 				<div class="cta-area">
-					{#if !data.isLoggedIn}
-						<a href="/register?redirectTo={encodeURIComponent(redirectPath)}" class="cta-btn">
-							Register & RSVP
-						</a>
-						<a href="/login?redirectTo={encodeURIComponent(redirectPath)}" class="sign-in-link">
-							Already a member? Sign in
-						</a>
-					{:else if !data.isVerified}
-						<div class="verify-msg">
-							<p>Check your email to verify your account, then come back to RSVP.</p>
-							<a href="/verify-email" class="verify-link">Go to verification</a>
-						</div>
-					{:else}
+					{#if !data.isLoggedIn || data.isVerified}
 						<div class="rsvp-inline">
-							<span class="rsvp-label">RSVP</span>
 							<RSVPButtons
 								eventId={event.id}
 								currentStatus={data.memberRsvp}
@@ -94,14 +81,19 @@
 								redirectTo={redirectPath}
 							/>
 						</div>
+					{:else}
+						<div class="verify-msg">
+							<p>Check your email to verify your account, then come back to RSVP.</p>
+							<a href="/verify-email" class="verify-link">Go to verification</a>
+						</div>
 					{/if}
 				</div>
 			{/if}
 		</div>
 
-		<!-- Full details CTA -->
-		<a href="/{event.clubType}/events/{event.id}" class="full-details-btn">
-			View Full Event & RSVP &rarr;
+		<!-- Footer link -->
+		<a href="/{event.clubType}/events/{event.id}" class="full-details-link">
+			View full event details &rarr;
 		</a>
 
 		<div class="branding">
@@ -352,59 +344,6 @@
 		border-top-color: #e5e7eb;
 	}
 
-	.cta-btn {
-		display: block;
-		width: 100%;
-		padding: 1rem;
-		border-radius: 0.75rem;
-		font-family: 'Space Grotesk', sans-serif;
-		font-size: 1.05rem;
-		font-weight: 600;
-		text-align: center;
-		text-decoration: none;
-		transition: background 0.15s;
-	}
-
-	.astronomy .cta-btn {
-		background: #4f46e5;
-		color: #ffffff;
-	}
-
-	.astronomy .cta-btn:hover {
-		background: #4338ca;
-	}
-
-	.physics .cta-btn {
-		background: #0e79b2;
-		color: #ffffff;
-	}
-
-	.physics .cta-btn:hover {
-		background: #0b6494;
-	}
-
-	.sign-in-link {
-		font-family: 'Inter', sans-serif;
-		font-size: 0.85rem;
-		text-decoration: none;
-	}
-
-	.astronomy .sign-in-link {
-		color: rgba(245, 240, 232, 0.5);
-	}
-
-	.astronomy .sign-in-link:hover {
-		color: #c4b5fd;
-	}
-
-	.physics .sign-in-link {
-		color: #6b7280;
-	}
-
-	.physics .sign-in-link:hover {
-		color: #0e79b2;
-	}
-
 	/* Verify message */
 	.verify-msg {
 		text-align: center;
@@ -449,66 +388,71 @@
 		border-top: none;
 	}
 
-	.rsvp-inline :global(.rsvp-label) {
-		display: none;
-	}
-
 	.rsvp-inline :global(.rsvp-prompt) {
 		margin-top: 0;
 		padding-top: 0;
 		border-top: none;
 	}
 
-	.rsvp-label {
-		display: block;
-		font-family: 'JetBrains Mono', monospace;
-		font-size: 0.65rem;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.15em;
-		text-align: center;
-		margin-bottom: 0.75rem;
-	}
-
-	.astronomy .rsvp-label {
-		color: rgba(245, 240, 232, 0.35);
-	}
-
-	.physics .rsvp-label {
+	.physics .rsvp-inline :global(.rsvp-label) {
 		color: #9ca3af;
 	}
 
-	/* Full details CTA button */
-	.full-details-btn {
-		display: block;
-		width: 100%;
-		max-width: 480px;
-		padding: 1rem 1.25rem;
-		border-radius: 0.75rem;
-		font-family: 'Space Grotesk', sans-serif;
-		font-size: 1rem;
-		font-weight: 600;
-		text-align: center;
+	.physics .rsvp-inline :global(.rsvp-btn.going) {
+		background: rgba(14, 121, 178, 0.08);
+		border-color: rgba(14, 121, 178, 0.35);
+		color: #0e79b2;
+	}
+
+	.physics .rsvp-inline :global(.rsvp-btn.going:hover:not(:disabled)) {
+		background: rgba(14, 121, 178, 0.15);
+		border-color: rgba(14, 121, 178, 0.6);
+		color: #0b6494;
+	}
+
+	.physics .rsvp-inline :global(.rsvp-btn.going.active) {
+		background: rgba(14, 121, 178, 0.18);
+		border-color: #0e79b2;
+		color: #0b6494;
+	}
+
+	.physics .rsvp-inline :global(.rsvp-btn.maybe),
+	.physics .rsvp-inline :global(.rsvp-btn.not-going) {
+		background: rgba(0, 0, 0, 0.03);
+		border-color: #e5e7eb;
+		color: rgba(25, 25, 35, 0.5);
+	}
+
+	.physics .rsvp-inline :global(.rsvp-signin-hint) {
+		color: #6b7280;
+	}
+
+	.physics .rsvp-inline :global(.rsvp-signin-hint:hover) {
+		color: #0e79b2;
+	}
+
+	/* Footer link */
+	.full-details-link {
+		font-family: 'Inter', sans-serif;
+		font-size: 0.8rem;
 		text-decoration: none;
-		transition: all 0.15s;
+		transition: color 0.15s;
 	}
 
-	.astronomy .full-details-btn {
-		background: #4f46e5;
-		color: #ffffff;
+	.astronomy .full-details-link {
+		color: rgba(245, 240, 232, 0.35);
 	}
 
-	.astronomy .full-details-btn:hover {
-		background: #4338ca;
+	.astronomy .full-details-link:hover {
+		color: #22d3ee;
 	}
 
-	.physics .full-details-btn {
-		background: #0e79b2;
-		color: #ffffff;
+	.physics .full-details-link {
+		color: #9ca3af;
 	}
 
-	.physics .full-details-btn:hover {
-		background: #0b6494;
+	.physics .full-details-link:hover {
+		color: #0e79b2;
 	}
 
 	/* Branding */

@@ -39,8 +39,16 @@
 </script>
 
 {#if !isLoggedIn}
-	<div class="rsvp-prompt">
-		<a href="/register{redirectTo ? `?redirectTo=${redirectTo}` : ''}" class="rsvp-login-link">Sign in to RSVP</a>
+	<div class="rsvp-buttons">
+		<span class="rsvp-label">RSVP</span>
+		<div class="rsvp-primary-row">
+			<a class="rsvp-btn going" href="/register{redirectTo ? `?redirectTo=${redirectTo}` : ''}">&#10003; Going</a>
+		</div>
+		<div class="rsvp-secondary-row">
+			<a class="rsvp-btn maybe" href="/register{redirectTo ? `?redirectTo=${redirectTo}` : ''}">Maybe</a>
+			<a class="rsvp-btn not-going" href="/register{redirectTo ? `?redirectTo=${redirectTo}` : ''}">Not Going</a>
+		</div>
+		<a href="/login{redirectTo ? `?redirectTo=${redirectTo}` : ''}" class="rsvp-signin-hint">Already a member? Sign in</a>
 	</div>
 {:else if !isVerified}
 	<div class="rsvp-prompt">
@@ -81,14 +89,25 @@
 		border-top: 1px solid rgba(255, 255, 255, 0.08);
 	}
 
-	.rsvp-login-link {
-		font-size: 0.85rem;
-		color: #818cf8;
+	.rsvp-signin-hint {
+		display: block;
+		text-align: center;
+		font-size: 0.8rem;
+		color: rgba(255, 255, 255, 0.45);
 		text-decoration: none;
+		margin-top: 0.25rem;
 	}
 
-	.rsvp-login-link:hover {
+	.rsvp-signin-hint:hover {
+		color: rgba(255, 255, 255, 0.8);
 		text-decoration: underline;
+	}
+
+	a.rsvp-btn {
+		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.rsvp-verify-msg {
