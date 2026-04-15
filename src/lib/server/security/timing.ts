@@ -9,20 +9,20 @@ export function checkSubmissionTiming(formData: FormData, minSeconds = 2) {
 	const tsRaw = formData.get('_ts');
 
 	if (!tsRaw || typeof tsRaw !== 'string') {
-		return fail(400, { error: 'Something went wrong. Please try again.' });
+		return fail(400, { error: 'Your session expired. Please reload the page and try again.' });
 	}
 
 	const ts = parseInt(tsRaw, 10);
 
 	if (isNaN(ts)) {
-		return fail(400, { error: 'Something went wrong. Please try again.' });
+		return fail(400, { error: 'Your session expired. Please reload the page and try again.' });
 	}
 
 	const now = Date.now();
 
 	// Reject future timestamps (tampered)
 	if (ts > now + 1000) {
-		return fail(400, { error: 'Something went wrong. Please try again.' });
+		return fail(400, { error: 'Your session expired. Please reload the page and try again.' });
 	}
 
 	const elapsedSeconds = (now - ts) / 1000;

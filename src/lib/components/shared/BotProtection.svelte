@@ -1,5 +1,13 @@
 <script lang="ts">
-	let { challenge = '', difficulty = 16 }: { challenge?: string; difficulty?: number } = $props();
+	let {
+		challenge = '',
+		difficulty = 16,
+		onReady
+	}: {
+		challenge?: string;
+		difficulty?: number;
+		onReady?: (ready: boolean) => void;
+	} = $props();
 
 	let tsValue = $state('');
 	let powNonce = $state('');
@@ -13,7 +21,13 @@
 		// Proof-of-work: only runs if a challenge is provided
 		if (!challenge) return;
 
+		// Reset state for the new challenge
+		powNonce = '';
+		onReady?.(false);
+
+		let cancelled = false;
 		const target = difficulty;
+		const currentChallenge = challenge; // capture so the loop uses the right value
 
 		(async () => {
 			// Find a nonce where SHA-256(challenge + ":" + nonce) has `difficulty` leading zero bits
@@ -21,13 +35,18 @@
 			let counter = 0;
 
 			while (true) {
-				const input = `${challenge}:${counter}`;
+				if (cancelled) return;
+
+				const input = `${currentChallenge}:${counter}`;
 				const data = encoder.encode(input);
 				const hashBuffer = await crypto.subtle.digest('SHA-256', data);
 				const hashArray = new Uint8Array(hashBuffer);
 
 				if (hasLeadingZeroBits(hashArray, target)) {
-					powNonce = counter.toString();
+					if (!cancelled) {
+						powNonce = counter.toString();
+						onReady?.(true);
+					}
 					break;
 				}
 
@@ -39,6 +58,11 @@
 				}
 			}
 		})();
+
+		// Cleanup: cancel the loop when the challenge prop changes or component unmounts
+		return () => {
+			cancelled = true;
+		};
 	});
 
 	function hasLeadingZeroBits(hash: Uint8Array, bits: number): boolean {

@@ -7,6 +7,7 @@
 		memberId: string;
 		firstName: string;
 		lastName: string;
+		email: string;
 		responses: Record<string, string | string[]> | null;
 		checkedInAt: Date;
 	}
@@ -93,6 +94,27 @@
 	function formatReliability(score: number | null): string {
 		if (score === null) return 'New';
 		return `${Math.round(score * 100)}%`;
+	}
+
+	function exportCheckinCsv() {
+		const headers = ['First Name', 'Last Name', 'Email', 'Checked In At'];
+		const sorted = [...checkinResponses].sort(
+			(a, b) => new Date(a.checkedInAt).getTime() - new Date(b.checkedInAt).getTime()
+		);
+		const rows = sorted.map((r) => [
+			r.firstName,
+			r.lastName,
+			r.email,
+			new Date(r.checkedInAt).toLocaleString()
+		]);
+		const csv = [headers, ...rows].map((row) => row.map((c) => `"${c}"`).join(',')).join('\n');
+		const blob = new Blob([csv], { type: 'text/csv' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `${event.title.replace(/[^a-zA-Z0-9]/g, '_')}_checkins.csv`;
+		a.click();
+		URL.revokeObjectURL(url);
 	}
 
 	function exportCsv() {
@@ -337,6 +359,33 @@
 			</table>
 		{/if}
 	</div>
+
+	{#if checkinResponses.length > 0}
+		<div class="table-card checkin-members-card">
+			<div class="table-header">
+				<h2>Checked In Members ({checkinResponses.length})</h2>
+				<button class="export-btn" onclick={exportCheckinCsv}>Export CSV</button>
+			</div>
+			<table class="data-table">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Email</th>
+						<th>Checked In At</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each [...checkinResponses].sort((a, b) => new Date(a.checkedInAt).getTime() - new Date(b.checkedInAt).getTime()) as row}
+						<tr>
+							<td class="name-cell">{row.firstName} {row.lastName}</td>
+							<td class="email-cell">{row.email}</td>
+							<td>{new Date(row.checkedInAt).toLocaleString()}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+	{/if}
 
 	{#if hasResponseData}
 		<div class="responses-card">
@@ -752,6 +801,8 @@
 
 	.checkin-yes { color: #16a34a; font-weight: 600; }
 	.checkin-no { color: #d1d5db; }
+
+	.checkin-members-card { margin-top: 1.5rem; }
 
 	/* Responses Section */
 	.responses-card {

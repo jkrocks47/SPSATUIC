@@ -250,3 +250,24 @@ export async function sendEventAnnouncementEmail(
 </html>`
 	});
 }
+
+const ADMIN_ALERT_EMAIL = 'mgiblin@blthermals.com';
+
+export async function sendAdminAlertEmail(subject: string, details: string) {
+	const resend = getResend();
+	await resend.emails.send({
+		from: FROM_EMAIL,
+		to: ADMIN_ALERT_EMAIL,
+		subject: `[${SITE_NAME} Alert] ${subject}`,
+		html: `<!DOCTYPE html>
+<html>
+<body style="margin: 0; padding: 24px; background: #0f172a; font-family: monospace; color: #e2e8f0;">
+  <div style="max-width: 560px; margin: 0 auto; background: #1e293b; border-radius: 12px; padding: 24px; border: 1px solid rgba(248,113,113,0.3);">
+    <h2 style="margin: 0 0 16px; color: #f87171; font-size: 1.1rem;">&#9888; ${escapeHtml(subject)}</h2>
+    <pre style="background: rgba(0,0,0,0.4); padding: 16px; border-radius: 8px; white-space: pre-wrap; word-break: break-all; color: #e2e8f0; font-size: 0.85rem; margin: 0 0 16px;">${escapeHtml(details)}</pre>
+    <p style="margin: 0; font-size: 0.75rem; color: #6b7280;">Timestamp: ${new Date().toISOString()}</p>
+  </div>
+</body>
+</html>`
+	});
+}

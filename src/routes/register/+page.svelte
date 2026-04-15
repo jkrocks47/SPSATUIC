@@ -9,10 +9,40 @@
 	let memberType = $state<'new' | 'returning' | null>(null);
 
 	// Persist step 2 values in JS state so they survive step navigation
-	let firstName = $state(form?.firstName ?? '');
-	let lastName = $state(form?.lastName ?? '');
-	let email = $state(form?.email ?? '');
+	// form is a union of fail() shapes — cast to access optional fields safely
+	const f = form as Record<string, string> | null;
+	let firstName = $state(f?.firstName ?? '');
+	let lastName = $state(f?.lastName ?? '');
+	let email = $state(f?.email ?? '');
 	let password = $state('');
+
+	// PoW readiness and submit state
+	let powReady = $state(false);
+	let submitting = $state(false);
+
+	// Step 2 client-side validation error
+	let step2Error = $state('');
+
+	function validateStep2(): boolean {
+		if (!firstName.trim()) {
+			step2Error = 'First name is required.';
+			return false;
+		}
+		if (!lastName.trim()) {
+			step2Error = 'Last name is required.';
+			return false;
+		}
+		if (!email.trim() || !email.toLowerCase().endsWith('@uic.edu')) {
+			step2Error = 'Must be a @uic.edu email address.';
+			return false;
+		}
+		if (password.length < 8 || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+			step2Error = 'Password must be at least 8 characters with 1 uppercase letter and 1 number.';
+			return false;
+		}
+		step2Error = '';
+		return true;
+	}
 </script>
 
 <svelte:head>
@@ -54,11 +84,13 @@
 			</div>
 		{:else}
 			<form method="POST" action="?/register" use:enhance={() => {
+				submitting = true;
 				return async ({ update }) => {
 					await update({ reset: false });
+					submitting = false;
 				};
 			}}>
-				<BotProtection challenge={data.challenge} difficulty={data.difficulty} />
+				<BotProtection challenge={data.challenge} difficulty={data.difficulty} onReady={(ready) => { powReady = ready; }} />
 				{#if data?.redirectTo}
 					<input type="hidden" name="redirectTo" value={data.redirectTo} />
 				{/if}
@@ -73,6 +105,10 @@
 					<!-- Step 2: Account creation -->
 					<div class="step-content">
 						<h2>Create your account</h2>
+
+						{#if step2Error}
+							<div class="error-message">{step2Error}</div>
+						{/if}
 
 						<div class="form-group">
 							<label for="firstName">First Name *</label>
@@ -96,8 +132,8 @@
 						</div>
 
 						<div class="form-actions">
-							<button type="button" class="back-btn" onclick={() => step = 1}>Back</button>
-							<button type="button" class="next-btn" onclick={() => step = 3}>Next</button>
+							<button type="button" class="back-btn" onclick={() => { step2Error = ''; step = 1; }}>Back</button>
+							<button type="button" class="next-btn" onclick={() => { if (validateStep2()) step = 3; }}>Next</button>
 						</div>
 					</div>
 				{:else if step === 3}
@@ -155,8 +191,10 @@
 						</div>
 
 						<div class="form-actions">
-							<button type="button" class="back-btn" onclick={() => step = 2}>Back</button>
-							<button type="submit" class="submit-btn">Create Account</button>
+							<button type="button" class="back-btn" onclick={() => step = 2} disabled={submitting}>Back</button>
+							<button type="submit" class="submit-btn" disabled={!powReady || submitting}>
+								{submitting ? 'Creating account…' : 'Create Account'}
+							</button>
 						</div>
 					</div>
 				{/if}
@@ -434,6 +472,16 @@
 	.next-btn:hover,
 	.submit-btn:hover {
 		background: #4338ca;
+	}
+
+	.submit-btn:disabled,
+	.back-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.submit-btn:disabled:hover {
+		background: #4f46e5;
 	}
 
 	.login-link {

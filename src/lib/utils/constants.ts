@@ -10,7 +10,7 @@ export type MemberRole = (typeof MEMBER_ROLES)[number];
 export const RSVP_STATUSES = ['going', 'maybe', 'not_going'] as const;
 export type RsvpStatus = (typeof RSVP_STATUSES)[number];
 
-export const YEARS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate'] as const;
+export const YEARS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Faculty'] as const;
 export type Year = (typeof YEARS)[number];
 
 export const ACTIVE_MEMBER_THRESHOLD = 3;

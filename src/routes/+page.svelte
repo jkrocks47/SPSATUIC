@@ -147,7 +147,9 @@
 								{/if}
 								<h4 class="officer-name">{officer.name}</h4>
 								<p class="officer-pos">{officer.position}</p>
-								{#if officer.bio}<p class="officer-bio">{officer.bio}</p>{/if}
+								{#if officer.bio}
+									<a href="/physics/board/{officer.id}" class="officer-bio-btn">View Bio</a>
+								{/if}
 							</GlassPanel>
 						{/each}
 					</div>
@@ -460,9 +462,20 @@
 		font-size: 0.55rem; letter-spacing: 0.1em;
 		color: rgba(206,17,38,0.5); margin-top: 0.1rem;
 	}
-	.officer-bio {
-		font-family: 'Space Grotesk', sans-serif;
-		font-size: 0.7rem; color: rgba(245,240,232,0.4); margin-top: 0.3rem;
+	.officer-bio-btn {
+		display: inline-block;
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase;
+		color: rgba(206,17,38,0.6); text-decoration: none;
+		border: 1px solid rgba(206,17,38,0.2);
+		padding: 0.25rem 0.75rem; border-radius: 100px;
+		margin-top: 0.5rem;
+		transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+	}
+	.officer-bio-btn:hover {
+		color: rgba(245,240,232,0.9);
+		border-color: rgba(206,17,38,0.5);
+		background: rgba(206,17,38,0.08);
 	}
 
 	/* History — decorative left border, no glass panel */

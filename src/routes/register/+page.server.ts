@@ -8,7 +8,7 @@ import {
 	createMemberSession,
 	generateVerificationToken
 } from '$lib/server/auth';
-import { sendVerificationEmail } from '$lib/server/email';
+import { sendVerificationEmail, sendAdminAlertEmail } from '$lib/server/email';
 import { registrationSchema } from '$lib/utils/validation';
 import { getInterestOptions } from '$lib/server/db/queries';
 import { checkHoneypot, checkRateLimit, checkSubmissionTiming, generateChallenge, checkProofOfWork } from '$lib/server/security';
@@ -105,13 +105,28 @@ export const actions: Actions = {
 				})
 				.returning({ id: members.id });
 		} catch (err) {
+			const errMsg = err instanceof Error ? err.message : String(err);
 			console.error('[Register] INSERT failed:', err);
-			return fail(500, { error: 'Registration failed. Please try again.', email: data.email, firstName: data.firstName, lastName: data.lastName });
+			sendAdminAlertEmail(
+				'Registration DB Error',
+				`DB INSERT failed during member registration.\nEmail attempted: ${data.email}\nError: ${errMsg}`
+			).catch(() => {});
+			return fail(500, {
+				error: 'We ran into a problem creating your account. Our team has been notified — please try again shortly.',
+				email: data.email, firstName: data.firstName, lastName: data.lastName
+			});
 		}
 
 		if (!member) {
 			console.error('[Register] INSERT returned no rows');
-			return fail(500, { error: 'Registration failed. Please try again.', email: data.email, firstName: data.firstName, lastName: data.lastName });
+			sendAdminAlertEmail(
+				'Registration DB Error',
+				`DB INSERT returned no rows during member registration.\nEmail attempted: ${data.email}`
+			).catch(() => {});
+			return fail(500, {
+				error: 'We ran into a problem creating your account. Our team has been notified — please try again shortly.',
+				email: data.email, firstName: data.firstName, lastName: data.lastName
+			});
 		}
 
 		// Generate verification token and send email

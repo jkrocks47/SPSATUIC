@@ -216,6 +216,7 @@ export async function getEventDetailForAdmin(eventId: string, clubType: ClubType
 			memberId: eventCheckins.memberId,
 			firstName: members.firstName,
 			lastName: members.lastName,
+			email: members.email,
 			responses: eventCheckins.questionResponses,
 			checkedInAt: eventCheckins.checkedInAt
 		})
