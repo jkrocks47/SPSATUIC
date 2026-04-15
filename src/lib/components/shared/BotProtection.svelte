@@ -84,9 +84,10 @@
 
 <!-- Honeypot fields: positioned off-screen, invisible to real users, attractive to bots -->
 <!-- Using position/opacity instead of display:none because some bots skip display:none fields -->
+<!-- Field names are intentionally generic to avoid triggering browser autofill heuristics -->
 <div style="position: absolute; left: -9999px; opacity: 0; pointer-events: none;" aria-hidden="true">
-	<input type="text" name="_name" tabindex="-1" autocomplete="off" />
-	<input type="email" name="_email_confirm" tabindex="-1" autocomplete="off" />
+	<input type="text" name="_hpf1" tabindex="-1" autocomplete="nope" />
+	<input type="text" name="_hpf2" tabindex="-1" autocomplete="nope" />
 </div>
 
 <!-- Timestamp: set on mount to measure form fill duration -->
