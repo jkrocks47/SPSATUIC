@@ -99,9 +99,9 @@
 			{/if}
 		</div>
 
-		<!-- Footer link -->
-		<a href="/{event.clubType}/events/{event.id}" class="full-details-link">
-			View full event details &rarr;
+		<!-- Full details CTA -->
+		<a href="/{event.clubType}/events/{event.id}" class="full-details-btn">
+			View Full Event & RSVP &rarr;
 		</a>
 
 		<div class="branding">
@@ -478,28 +478,37 @@
 		color: #9ca3af;
 	}
 
-	/* Footer link */
-	.full-details-link {
-		font-family: 'Inter', sans-serif;
-		font-size: 0.8rem;
+	/* Full details CTA button */
+	.full-details-btn {
+		display: block;
+		width: 100%;
+		max-width: 480px;
+		padding: 1rem 1.25rem;
+		border-radius: 0.75rem;
+		font-family: 'Space Grotesk', sans-serif;
+		font-size: 1rem;
+		font-weight: 600;
+		text-align: center;
 		text-decoration: none;
-		transition: color 0.15s;
+		transition: all 0.15s;
 	}
 
-	.astronomy .full-details-link {
-		color: rgba(245, 240, 232, 0.35);
+	.astronomy .full-details-btn {
+		background: #4f46e5;
+		color: #ffffff;
 	}
 
-	.astronomy .full-details-link:hover {
-		color: #22d3ee;
+	.astronomy .full-details-btn:hover {
+		background: #4338ca;
 	}
 
-	.physics .full-details-link {
-		color: #9ca3af;
+	.physics .full-details-btn {
+		background: #0e79b2;
+		color: #ffffff;
 	}
 
-	.physics .full-details-link:hover {
-		color: #0e79b2;
+	.physics .full-details-btn:hover {
+		background: #0b6494;
 	}
 
 	/* Branding */
