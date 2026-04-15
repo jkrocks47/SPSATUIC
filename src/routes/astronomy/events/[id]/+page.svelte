@@ -71,20 +71,6 @@
 				{/if}
 			</div>
 
-			{#if !data.isPast}
-				<!-- RSVP counts -->
-				{#if data.rsvpCounts.going > 0 || data.rsvpCounts.maybe > 0}
-					<div class="flex gap-3 mb-4">
-						{#if data.rsvpCounts.going > 0}
-							<span class="font-mono text-xs text-green-400/70">{data.rsvpCounts.going} going</span>
-						{/if}
-						{#if data.rsvpCounts.maybe > 0}
-							<span class="font-mono text-xs text-yellow-400/70">{data.rsvpCounts.maybe} maybe</span>
-						{/if}
-					</div>
-				{/if}
-			{/if}
-
 			{#if event.description}
 				<div class="font-body text-base text-astro-cream/70 leading-relaxed prose-description">
 					{@html renderMarkdown(event.description)}

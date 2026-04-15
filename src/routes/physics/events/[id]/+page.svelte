@@ -70,20 +70,6 @@
 				{/if}
 			</div>
 
-			{#if !data.isPast}
-				<!-- RSVP counts -->
-				{#if data.rsvpCounts.going > 0 || data.rsvpCounts.maybe > 0}
-					<div class="flex gap-3 mb-4">
-						{#if data.rsvpCounts.going > 0}
-							<span class="text-xs text-green-600/70 font-medium">{data.rsvpCounts.going} going</span>
-						{/if}
-						{#if data.rsvpCounts.maybe > 0}
-							<span class="text-xs text-yellow-600/70 font-medium">{data.rsvpCounts.maybe} maybe</span>
-						{/if}
-					</div>
-				{/if}
-			{/if}
-
 			{#if event.description}
 				<div class="font-body text-base text-physics-dark/70 leading-relaxed prose-description">
 					{@html renderMarkdown(event.description)}
@@ -129,13 +115,36 @@
 		color: rgba(25, 25, 35, 0.4);
 	}
 
-	.physics-rsvp :global(.rsvp-btn) {
+	/* Going button — physics blue */
+	.physics-rsvp :global(.rsvp-btn.going) {
+		background: rgba(14, 121, 178, 0.08);
+		border-color: rgba(14, 121, 178, 0.35);
+		color: #0e79b2;
+	}
+
+	.physics-rsvp :global(.rsvp-btn.going:hover:not(:disabled)) {
+		background: rgba(14, 121, 178, 0.15);
+		border-color: rgba(14, 121, 178, 0.6);
+		color: #0b6494;
+	}
+
+	.physics-rsvp :global(.rsvp-btn.going.active) {
+		background: rgba(14, 121, 178, 0.18);
+		border-color: #0e79b2;
+		color: #0b6494;
+		box-shadow: 0 0 10px rgba(14, 121, 178, 0.15);
+	}
+
+	/* Secondary buttons — neutral */
+	.physics-rsvp :global(.rsvp-btn.maybe),
+	.physics-rsvp :global(.rsvp-btn.not-going) {
 		background: rgba(0, 0, 0, 0.03);
 		border-color: #e5e7eb;
 		color: rgba(25, 25, 35, 0.5);
 	}
 
-	.physics-rsvp :global(.rsvp-btn:hover:not(:disabled)) {
+	.physics-rsvp :global(.rsvp-btn.maybe:hover:not(:disabled)),
+	.physics-rsvp :global(.rsvp-btn.not-going:hover:not(:disabled)) {
 		border-color: #d1d5db;
 		color: rgba(25, 25, 35, 0.8);
 	}

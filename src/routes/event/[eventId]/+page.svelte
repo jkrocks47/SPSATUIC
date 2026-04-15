@@ -447,18 +447,10 @@
 		margin-top: 0;
 		padding-top: 0;
 		border-top: none;
-		flex-wrap: wrap;
-		justify-content: center;
 	}
 
 	.rsvp-inline :global(.rsvp-label) {
 		display: none;
-	}
-
-	.rsvp-inline :global(.rsvp-btn) {
-		padding: 0.65rem 1.5rem;
-		font-size: 0.9rem;
-		font-weight: 600;
 	}
 
 	.rsvp-inline :global(.rsvp-prompt) {

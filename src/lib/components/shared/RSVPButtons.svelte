@@ -49,24 +49,28 @@
 {:else}
 	<div class="rsvp-buttons">
 		<span class="rsvp-label">RSVP</span>
-		<button
-			class="rsvp-btn going"
-			class:active={status === 'going'}
-			disabled={loading}
-			onclick={() => handleRsvp('going')}
-		>Going</button>
-		<button
-			class="rsvp-btn maybe"
-			class:active={status === 'maybe'}
-			disabled={loading}
-			onclick={() => handleRsvp('maybe')}
-		>Maybe</button>
-		<button
-			class="rsvp-btn not-going"
-			class:active={status === 'not_going'}
-			disabled={loading}
-			onclick={() => handleRsvp('not_going')}
-		>Not Going</button>
+		<div class="rsvp-primary-row">
+			<button
+				class="rsvp-btn going"
+				class:active={status === 'going'}
+				disabled={loading}
+				onclick={() => handleRsvp('going')}
+			>&#10003; Going</button>
+		</div>
+		<div class="rsvp-secondary-row">
+			<button
+				class="rsvp-btn maybe"
+				class:active={status === 'maybe'}
+				disabled={loading}
+				onclick={() => handleRsvp('maybe')}
+			>Maybe</button>
+			<button
+				class="rsvp-btn not-going"
+				class:active={status === 'not_going'}
+				disabled={loading}
+				onclick={() => handleRsvp('not_going')}
+			>Not Going</button>
+		</div>
 	</div>
 {/if}
 
@@ -94,8 +98,8 @@
 
 	.rsvp-buttons {
 		display: flex;
-		align-items: center;
-		gap: 0.5rem;
+		flex-direction: column;
+		gap: 0.6rem;
 		margin-top: 1.5rem;
 		padding-top: 1.5rem;
 		border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -107,14 +111,21 @@
 		text-transform: uppercase;
 		letter-spacing: 0.1em;
 		color: rgba(255, 255, 255, 0.4);
-		margin-right: 0.25rem;
+	}
+
+	.rsvp-primary-row {
+		display: flex;
+	}
+
+	.rsvp-secondary-row {
+		display: flex;
+		gap: 0.5rem;
 	}
 
 	.rsvp-btn {
-		padding: 0.4rem 0.9rem;
-		border-radius: 9999px;
-		font-size: 0.75rem;
-		font-weight: 500;
+		border-radius: 0.625rem;
+		font-size: 0.85rem;
+		font-weight: 600;
 		cursor: pointer;
 		transition: all 0.2s;
 		background: rgba(255, 255, 255, 0.05);
@@ -122,20 +133,47 @@
 		color: rgba(255, 255, 255, 0.6);
 	}
 
-	.rsvp-btn:hover:not(:disabled) {
-		border-color: rgba(255, 255, 255, 0.2);
-		color: rgba(255, 255, 255, 0.9);
-	}
-
 	.rsvp-btn:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
 
-	.rsvp-btn.going.active {
-		background: rgba(34, 197, 94, 0.2);
-		border-color: rgba(34, 197, 94, 0.5);
+	/* Primary Going button — large and prominent */
+	.rsvp-btn.going {
+		width: 100%;
+		padding: 0.85rem 1.25rem;
+		font-size: 1rem;
+		background: rgba(34, 197, 94, 0.15);
+		border-color: rgba(34, 197, 94, 0.35);
 		color: #86efac;
+	}
+
+	.rsvp-btn.going:hover:not(:disabled) {
+		background: rgba(34, 197, 94, 0.25);
+		border-color: rgba(34, 197, 94, 0.6);
+		color: #bbf7d0;
+	}
+
+	.rsvp-btn.going.active {
+		background: rgba(34, 197, 94, 0.3);
+		border-color: rgba(34, 197, 94, 0.7);
+		color: #4ade80;
+		box-shadow: 0 0 12px rgba(34, 197, 94, 0.2);
+	}
+
+	/* Secondary Maybe / Not Going buttons — smaller */
+	.rsvp-btn.maybe,
+	.rsvp-btn.not-going {
+		flex: 1;
+		padding: 0.45rem 0.75rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+	}
+
+	.rsvp-btn.maybe:hover:not(:disabled),
+	.rsvp-btn.not-going:hover:not(:disabled) {
+		border-color: rgba(255, 255, 255, 0.2);
+		color: rgba(255, 255, 255, 0.9);
 	}
 
 	.rsvp-btn.maybe.active {
