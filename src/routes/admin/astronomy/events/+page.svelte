@@ -217,9 +217,9 @@
 							<tr>
 								<td colspan="7" class="qr-row">
 									<div class="qr-info">
-										<p class="qr-label">Check-in URL:</p>
+										<p class="qr-label">Check-In QR Code <span class="qr-only-badge">Check-In Only</span></p>
+										<p class="qr-hint">This QR code is <strong>for check-in only</strong> — members scan it at the event to record attendance. For RSVP, use the Poster page.</p>
 										<code class="qr-url">/checkin/{event.id}?code={event.checkinCode}</code>
-										<p class="qr-hint">Display this QR code at the event for members to scan and check in.</p>
 										<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={encodeURIComponent(`${typeof window !== 'undefined' ? window.location.origin : ''}/checkin/${event.id}?code=${event.checkinCode}`)}" alt="QR Code" class="qr-image" />
 									</div>
 								</td>
@@ -592,6 +592,20 @@
 		font-weight: 600;
 		color: #374151;
 		margin-bottom: 0.35rem;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.qr-only-badge {
+		font-size: 0.65rem;
+		font-weight: 700;
+		padding: 0.1rem 0.45rem;
+		border-radius: 9999px;
+		background: #dcfce7;
+		color: #15803d;
+		letter-spacing: 0.02em;
+		text-transform: uppercase;
 	}
 
 	.qr-url {

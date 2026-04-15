@@ -120,12 +120,32 @@
 
 	<!-- QR Mode Selector (hidden on print) -->
 	<div class="qr-mode-selector">
-		<button class="qr-mode-btn" class:active={qrMode === 'checkin'} onclick={() => qrMode = 'checkin'}>
-			Check-in
-		</button>
-		<button class="qr-mode-btn" class:active={qrMode === 'rsvp'} onclick={() => qrMode = 'rsvp'}>
-			RSVP &amp; Reminders
-		</button>
+		<div class="mode-header">QR Code Type</div>
+		<div class="mode-buttons">
+			<button class="qr-mode-btn checkin-btn" class:active={qrMode === 'checkin'} onclick={() => qrMode = 'checkin'}>
+				✓ Check-In
+			</button>
+			<button class="qr-mode-btn rsvp-btn" class:active={qrMode === 'rsvp'} onclick={() => qrMode = 'rsvp'}>
+				★ RSVP
+			</button>
+		</div>
+		<div class="mode-active-label" class:is-checkin={qrMode === 'checkin'} class:is-rsvp={qrMode === 'rsvp'}>
+			{#if qrMode === 'checkin'}
+				Scan <strong>at the event</strong> to record attendance
+			{:else}
+				Scan <strong>before the event</strong> to register &amp; get reminders
+			{/if}
+		</div>
+		<div class="mode-glossary">
+			<div class="glossary-row">
+				<span class="glossary-term checkin-term">Check-In</span>
+				<span class="glossary-def">Scanned at the door — confirms a member physically attended</span>
+			</div>
+			<div class="glossary-row">
+				<span class="glossary-term rsvp-term">RSVP</span>
+				<span class="glossary-def">Scanned before the event — reserves a spot &amp; enables email reminders</span>
+			</div>
+		</div>
 	</div>
 
 	<!-- Print button (hidden on print) -->
@@ -459,32 +479,113 @@
 		right: 24px;
 		z-index: 100;
 		display: flex;
+		flex-direction: column;
+		gap: 10px;
 		background: #1e1e2e;
-		border-radius: 8px;
+		border-radius: 10px;
+		padding: 14px 16px;
+		box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		width: 240px;
+	}
+
+	.mode-header {
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 9px;
+		letter-spacing: 3px;
+		text-transform: uppercase;
+		color: #8892A4;
+	}
+
+	.mode-buttons {
+		display: flex;
+		border-radius: 6px;
 		overflow: hidden;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
 	.qr-mode-btn {
-		padding: 10px 18px;
+		flex: 1;
+		padding: 9px 12px;
 		background: transparent;
 		color: #8892A4;
 		border: none;
 		font-family: 'Space Grotesk', sans-serif;
-		font-size: 13px;
-		font-weight: 500;
+		font-size: 12px;
+		font-weight: 600;
 		cursor: pointer;
 		transition: all 0.15s;
+		letter-spacing: 0.3px;
 	}
 
 	.qr-mode-btn:hover {
 		color: #e2e8f0;
+		background: rgba(255,255,255,0.05);
 	}
 
-	.qr-mode-btn.active {
+	.checkin-btn.active {
+		background: #16a34a;
+		color: #fff;
+	}
+
+	.rsvp-btn.active {
 		background: #4f46e5;
-		color: #ffffff;
+		color: #fff;
+	}
+
+	.mode-active-label {
+		font-family: 'Space Grotesk', sans-serif;
+		font-size: 11px;
+		line-height: 1.45;
+		padding: 7px 10px;
+		border-radius: 6px;
+		color: #e2e8f0;
+	}
+
+	.mode-active-label.is-checkin {
+		background: rgba(22, 163, 74, 0.15);
+		border: 1px solid rgba(22, 163, 74, 0.3);
+	}
+
+	.mode-active-label.is-rsvp {
+		background: rgba(79, 70, 229, 0.15);
+		border: 1px solid rgba(79, 70, 229, 0.3);
+	}
+
+	.mode-active-label strong {
+		font-weight: 700;
+	}
+
+	.mode-glossary {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		border-top: 1px solid rgba(255,255,255,0.07);
+		padding-top: 10px;
+	}
+
+	.glossary-row {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.glossary-term {
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 10px;
+		font-weight: 600;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+	}
+
+	.checkin-term { color: #4ade80; }
+	.rsvp-term { color: #818cf8; }
+
+	.glossary-def {
+		font-family: 'Space Grotesk', sans-serif;
+		font-size: 10.5px;
+		color: #6b7280;
+		line-height: 1.4;
 	}
 
 	/* Bottom */

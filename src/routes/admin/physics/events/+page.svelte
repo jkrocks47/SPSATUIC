@@ -201,9 +201,9 @@
 							<tr>
 								<td colspan="7" class="qr-row">
 									<div class="qr-info">
-										<p class="qr-label">Check-in URL:</p>
+										<p class="qr-label">Check-In QR Code <span class="qr-only-badge">Check-In Only</span></p>
+										<p class="qr-hint">This QR code is <strong>for check-in only</strong> — members scan it at the event to record attendance. For RSVP, use the Poster page.</p>
 										<code class="qr-url">/checkin/{event.id}?code={event.checkinCode}</code>
-										<p class="qr-hint">Display this QR code at the event for members to scan.</p>
 										<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={encodeURIComponent(`${typeof window !== 'undefined' ? window.location.origin : ''}/checkin/${event.id}?code=${event.checkinCode}`)}" alt="QR Code" class="qr-image" />
 									</div>
 								</td>
@@ -318,7 +318,8 @@
 	.delete-btn:hover { background: #fef2f2; }
 	.edit-row, .qr-row { background: #f9fafb; padding: 1.25rem !important; }
 	.qr-info { text-align: center; }
-	.qr-label { font-size: 0.75rem; font-weight: 600; color: #374151; margin-bottom: 0.35rem; }
+	.qr-label { font-size: 0.75rem; font-weight: 600; color: #374151; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.5rem; }
+	.qr-only-badge { font-size: 0.65rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 9999px; background: #dcfce7; color: #15803d; letter-spacing: 0.02em; text-transform: uppercase; }
 	.qr-url { display: block; font-size: 0.7rem; color: #6b7280; background: #fff; padding: 0.4rem 0.75rem; border-radius: 0.25rem; border: 1px solid #e5e7eb; margin-bottom: 0.5rem; word-break: break-all; }
 	.qr-hint { font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.75rem; }
 	.qr-image { width: 200px; height: 200px; border-radius: 0.5rem; }
