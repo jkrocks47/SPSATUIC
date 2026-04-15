@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import MemberSearchInput from '$lib/components/admin/MemberSearchInput.svelte';
 
 	let { data, form } = $props();
 
@@ -68,13 +69,8 @@
 					</div>
 
 					<div class="form-group">
-						<label for="memberId">Link Member Account</label>
-						<select id="memberId" name="memberId">
-							<option value="">-- None --</option>
-							{#each data.members as m}
-								<option value={m.id}>{m.firstName} {m.lastName} ({m.email})</option>
-							{/each}
-						</select>
+						<label for="memberId-search">Link Member Account</label>
+						<MemberSearchInput members={data.members} />
 					</div>
 				</div>
 
@@ -162,12 +158,7 @@
 											</div>
 											<div class="form-group">
 												<label>Link Member Account</label>
-												<select name="memberId">
-													<option value="">-- None --</option>
-													{#each data.members as m}
-														<option value={m.id} selected={officer.memberId === m.id}>{m.firstName} {m.lastName} ({m.email})</option>
-													{/each}
-												</select>
+												<MemberSearchInput members={data.members} selectedId={officer.memberId ?? ''} />
 											</div>
 										</div>
 										<div class="form-actions">
@@ -270,8 +261,7 @@
 	.form-group input[type='text'],
 	.form-group input[type='email'],
 	.form-group input[type='number'],
-	.form-group textarea,
-	.form-group select {
+	.form-group textarea {
 		width: 100%;
 		padding: 0.5rem 0.65rem;
 		border: 1px solid #d1d5db;
@@ -283,8 +273,7 @@
 	.form-group textarea { resize: vertical; }
 
 	.form-group input:focus,
-	.form-group textarea:focus,
-	.form-group select:focus {
+	.form-group textarea:focus {
 		outline: none;
 		border-color: #4f46e5;
 		box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);

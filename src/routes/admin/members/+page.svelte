@@ -7,13 +7,22 @@
 
 	let search = $state(data.search);
 
-	function handleSearch() {
+	function buildParams(overrides: Record<string, string> = {}) {
 		const params = new URLSearchParams();
 		if (search) params.set('search', search);
 		if (data.clubFilter) params.set('club', data.clubFilter);
 		if (data.roleFilter) params.set('role', data.roleFilter);
 		if (data.interestFilter) params.set('interest', data.interestFilter);
-		goto(`/admin/members?${params.toString()}`);
+		if (data.adminFilter) params.set('admin', data.adminFilter);
+		for (const [k, v] of Object.entries(overrides)) {
+			if (v) params.set(k, v);
+			else params.delete(k);
+		}
+		return params.toString();
+	}
+
+	function handleSearch() {
+		goto(`/admin/members?${buildParams()}`);
 	}
 
 	function handleExport() {
@@ -57,21 +66,20 @@
 		</form>
 		<div class="filter-row">
 			<div class="filter-chips">
-				<a href="/admin/members" class="chip" class:active={!data.clubFilter && !data.roleFilter && !data.interestFilter}>All</a>
+				<a href="/admin/members" class="chip" class:active={!data.clubFilter && !data.roleFilter && !data.interestFilter && !data.adminFilter}>All</a>
 				<a href="/admin/members?club=astronomy" class="chip" class:active={data.clubFilter === 'astronomy'}>Astronomy</a>
 				<a href="/admin/members?club=physics" class="chip" class:active={data.clubFilter === 'physics'}>Physics</a>
 				<a href="/admin/members?role=board" class="chip" class:active={data.roleFilter === 'board'}>Board</a>
+				<span class="chip-divider"></span>
+				<a href="/admin/members?admin=any" class="chip chip-admin" class:active={data.adminFilter === 'any'}>Admins</a>
+				<a href="/admin/members?admin=super_admin" class="chip chip-super" class:active={data.adminFilter === 'super_admin'}>Super Admin</a>
+				<a href="/admin/members?admin=astronomy_admin" class="chip chip-astro-admin" class:active={data.adminFilter === 'astronomy_admin'}>Astro Admin</a>
+				<a href="/admin/members?admin=physics_admin" class="chip chip-phys-admin" class:active={data.adminFilter === 'physics_admin'}>Physics Admin</a>
 			</div>
 			<select
 				value={data.interestFilter}
 				onchange={(e) => {
-					const params = new URLSearchParams();
-					if (search) params.set('search', search);
-					if (data.clubFilter) params.set('club', data.clubFilter);
-					if (data.roleFilter) params.set('role', data.roleFilter);
-					const val = e.currentTarget.value;
-					if (val) params.set('interest', val);
-					goto(`/admin/members?${params.toString()}`);
+					goto(`/admin/members?${buildParams({ interest: e.currentTarget.value })}`);
 				}}
 				class="interest-select"
 			>
@@ -147,7 +155,7 @@
 										</select>
 									</form>
 								{:else if member.adminRole}
-									<span class="admin-badge">{member.adminRole.replace('_', ' ')}</span>
+									<span class="admin-badge admin-badge--{member.adminRole}">{member.adminRole.replace(/_/g, ' ')}</span>
 								{:else}
 									<span class="no-prefs">--</span>
 								{/if}
@@ -283,5 +291,14 @@
 	.interest-more { font-size: 0.6rem; color: #9ca3af; padding: 0.1rem 0.2rem; }
 	.no-prefs { color: #d1d5db; font-size: 0.75rem; }
 
-	.admin-badge { font-size: 0.65rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 9999px; background: #fef3c7; color: #d97706; text-transform: capitalize; }
+	.admin-badge { font-size: 0.65rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 9999px; text-transform: capitalize; }
+	.admin-badge--super_admin { background: #ede9fe; color: #7c3aed; }
+	.admin-badge--astronomy_admin { background: #eef2ff; color: #4f46e5; }
+	.admin-badge--physics_admin { background: #e0f2fe; color: #0369a1; }
+
+	.chip-divider { width: 1px; background: #e5e7eb; align-self: stretch; margin: 0 0.1rem; }
+	.chip-admin.active { background: #f5f3ff; color: #7c3aed; border-color: #7c3aed; }
+	.chip-super.active { background: #ede9fe; color: #7c3aed; border-color: #7c3aed; }
+	.chip-astro-admin.active { background: #eef2ff; color: #4f46e5; border-color: #4f46e5; }
+	.chip-phys-admin.active { background: #e0f2fe; color: #0369a1; border-color: #0369a1; }
 </style>

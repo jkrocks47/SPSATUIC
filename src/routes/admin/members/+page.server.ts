@@ -11,6 +11,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 	const clubFilter = url.searchParams.get('club') || '';
 	const roleFilter = url.searchParams.get('role') || '';
 	const interestFilter = url.searchParams.get('interest') || '';
+	const adminFilter = url.searchParams.get('admin') || '';
 
 	let query = db.select().from(members).orderBy(desc(members.createdAt)).$dynamic();
 
@@ -31,6 +32,8 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 	if (clubFilter === 'astronomy') filtered = filtered.filter((m) => m.astronomyMember);
 	if (clubFilter === 'physics') filtered = filtered.filter((m) => m.physicsMember);
 	if (roleFilter) filtered = filtered.filter((m) => m.role === roleFilter);
+	if (adminFilter === 'any') filtered = filtered.filter((m) => m.adminRole !== null);
+	else if (adminFilter) filtered = filtered.filter((m) => m.adminRole === adminFilter);
 	if (interestFilter) {
 		filtered = filtered.filter(
 			(m) => Array.isArray(m.eventPreferences) && m.eventPreferences.includes(interestFilter)
@@ -64,6 +67,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 		clubFilter,
 		roleFilter,
 		interestFilter,
+		adminFilter,
 		totalCount: allMembers.length,
 		currentUserRole: locals.member?.adminRole ?? null,
 		interestOptions: interestOpts
