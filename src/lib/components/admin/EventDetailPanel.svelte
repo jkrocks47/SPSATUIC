@@ -12,6 +12,14 @@
 		checkedInAt: Date;
 	}
 
+	interface EmailedMember {
+		id: string;
+		firstName: string;
+		lastName: string;
+		email: string;
+		sentAt: Date;
+	}
+
 	interface Props {
 		event: {
 			id: string;
@@ -29,11 +37,12 @@
 		backHref: string;
 		announcementRecipientCount: number;
 		announcementAlreadySent: boolean;
+		emailedMembers?: EmailedMember[];
 		checkinQuestions?: CheckinQuestion[];
 		checkinResponses?: CheckinResponseRow[];
 	}
 
-	let { event, rsvpList, stats, historicalRate, clubType, backHref, announcementRecipientCount, announcementAlreadySent, checkinQuestions = [], checkinResponses = [] }: Props = $props();
+	let { event, rsvpList, stats, historicalRate, clubType, backHref, announcementRecipientCount, announcementAlreadySent, emailedMembers = [], checkinQuestions = [], checkinResponses = [] }: Props = $props();
 
 	let showResponses = $state(false);
 
@@ -296,6 +305,33 @@
 					</div>
 				</div>
 			{/if}
+		</div>
+	{/if}
+
+	<!-- Emailed Members -->
+	{#if emailedMembers.length > 0}
+		<div class="table-card">
+			<div class="table-header">
+				<h2>Emailed ({emailedMembers.length})</h2>
+			</div>
+			<table class="data-table">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Email</th>
+						<th>Sent At</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each emailedMembers as m}
+						<tr>
+							<td class="name-cell">{m.firstName} {m.lastName}</td>
+							<td class="email-cell">{m.email}</td>
+							<td>{new Date(m.sentAt).toLocaleString()}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
 		</div>
 	{/if}
 

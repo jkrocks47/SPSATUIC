@@ -5,7 +5,13 @@ import { events, eventRsvps } from '$lib/server/db/schema';
 import { isPastEvent } from '$lib/utils/dates';
 import type { PageServerLoad } from './$types';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export const load: PageServerLoad = async ({ params, locals }) => {
+	if (!UUID_RE.test(params.eventId)) {
+		error(404, 'Event not found');
+	}
+
 	const result = await db
 		.select()
 		.from(events)
