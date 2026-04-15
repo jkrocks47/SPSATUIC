@@ -395,32 +395,40 @@
 	}
 
 	.physics .rsvp-inline :global(.rsvp-label) {
-		color: #9ca3af;
+		color: #6b7280;
 	}
 
 	.physics .rsvp-inline :global(.rsvp-btn.going) {
-		background: rgba(14, 121, 178, 0.08);
-		border-color: rgba(14, 121, 178, 0.35);
-		color: #0e79b2;
+		background: #0e79b2;
+		border-color: #0e79b2;
+		color: #ffffff;
 	}
 
 	.physics .rsvp-inline :global(.rsvp-btn.going:hover:not(:disabled)) {
-		background: rgba(14, 121, 178, 0.15);
-		border-color: rgba(14, 121, 178, 0.6);
-		color: #0b6494;
+		background: #0b6494;
+		border-color: #0b6494;
+		color: #ffffff;
 	}
 
 	.physics .rsvp-inline :global(.rsvp-btn.going.active) {
-		background: rgba(14, 121, 178, 0.18);
-		border-color: #0e79b2;
-		color: #0b6494;
+		background: #094f77;
+		border-color: #094f77;
+		color: #ffffff;
+		box-shadow: 0 0 0 3px rgba(14, 121, 178, 0.25);
 	}
 
 	.physics .rsvp-inline :global(.rsvp-btn.maybe),
 	.physics .rsvp-inline :global(.rsvp-btn.not-going) {
-		background: rgba(0, 0, 0, 0.03);
-		border-color: #e5e7eb;
-		color: rgba(25, 25, 35, 0.5);
+		background: #ffffff;
+		border-color: #d1d5db;
+		color: #374151;
+	}
+
+	.physics .rsvp-inline :global(.rsvp-btn.maybe:hover:not(:disabled)),
+	.physics .rsvp-inline :global(.rsvp-btn.not-going:hover:not(:disabled)) {
+		background: #f3f4f6;
+		border-color: #9ca3af;
+		color: #111827;
 	}
 
 	.physics .rsvp-inline :global(.rsvp-signin-hint) {

@@ -143,13 +143,13 @@
 
 	.rsvp-btn {
 		border-radius: 0.625rem;
-		font-size: 0.85rem;
+		font-size: 0.9rem;
 		font-weight: 600;
 		cursor: pointer;
 		transition: all 0.2s;
-		background: rgba(255, 255, 255, 0.05);
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		color: rgba(255, 255, 255, 0.6);
+		background: rgba(255, 255, 255, 0.1);
+		border: 1.5px solid rgba(255, 255, 255, 0.25);
+		color: #ffffff;
 	}
 
 	.rsvp-btn:disabled {
@@ -157,53 +157,54 @@
 		cursor: not-allowed;
 	}
 
-	/* Primary Going button — large and prominent */
+	/* Primary Going button — large, prominent, solid green */
 	.rsvp-btn.going {
 		width: 100%;
-		padding: 0.85rem 1.25rem;
-		font-size: 1rem;
-		background: rgba(34, 197, 94, 0.15);
-		border-color: rgba(34, 197, 94, 0.35);
-		color: #86efac;
+		padding: 0.95rem 1.25rem;
+		font-size: 1.05rem;
+		background: #22c55e;
+		border-color: #22c55e;
+		color: #ffffff;
 	}
 
 	.rsvp-btn.going:hover:not(:disabled) {
-		background: rgba(34, 197, 94, 0.25);
-		border-color: rgba(34, 197, 94, 0.6);
-		color: #bbf7d0;
+		background: #16a34a;
+		border-color: #16a34a;
+		color: #ffffff;
 	}
 
 	.rsvp-btn.going.active {
-		background: rgba(34, 197, 94, 0.3);
-		border-color: rgba(34, 197, 94, 0.7);
-		color: #4ade80;
-		box-shadow: 0 0 12px rgba(34, 197, 94, 0.2);
+		background: #15803d;
+		border-color: #15803d;
+		color: #ffffff;
+		box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.3);
 	}
 
-	/* Secondary Maybe / Not Going buttons — smaller */
+	/* Secondary Maybe / Not Going buttons */
 	.rsvp-btn.maybe,
 	.rsvp-btn.not-going {
 		flex: 1;
-		padding: 0.45rem 0.75rem;
-		font-size: 0.75rem;
-		font-weight: 500;
+		padding: 0.6rem 0.75rem;
+		font-size: 0.85rem;
+		font-weight: 600;
 	}
 
 	.rsvp-btn.maybe:hover:not(:disabled),
 	.rsvp-btn.not-going:hover:not(:disabled) {
-		border-color: rgba(255, 255, 255, 0.2);
-		color: rgba(255, 255, 255, 0.9);
+		background: rgba(255, 255, 255, 0.15);
+		border-color: rgba(255, 255, 255, 0.5);
+		color: #ffffff;
 	}
 
 	.rsvp-btn.maybe.active {
-		background: rgba(234, 179, 8, 0.2);
-		border-color: rgba(234, 179, 8, 0.5);
-		color: #fde047;
+		background: #eab308;
+		border-color: #eab308;
+		color: #ffffff;
 	}
 
 	.rsvp-btn.not-going.active {
-		background: rgba(220, 38, 38, 0.15);
-		border-color: rgba(220, 38, 38, 0.4);
-		color: #fca5a5;
+		background: #dc2626;
+		border-color: #dc2626;
+		color: #ffffff;
 	}
 </style>

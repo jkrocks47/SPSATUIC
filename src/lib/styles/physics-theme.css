@@ -110,38 +110,51 @@
 	color: rgba(232, 232, 240, 0.4);
 }
 
-/* Primary Going button — physics blue, prominent in dark mode */
+/* Primary Going button — bright sky blue, prominent in dark mode */
 .physics-theme.dark .physics-rsvp .rsvp-btn.going {
-	background: rgba(56, 189, 248, 0.12);
-	border-color: rgba(56, 189, 248, 0.4);
-	color: #7dd3fc;
+	background: #0284c7;
+	border-color: #0284c7;
+	color: #ffffff;
 }
 
 .physics-theme.dark .physics-rsvp .rsvp-btn.going:hover:not(:disabled) {
-	background: rgba(56, 189, 248, 0.2);
-	border-color: rgba(56, 189, 248, 0.6);
-	color: #bae6fd;
+	background: #0369a1;
+	border-color: #0369a1;
+	color: #ffffff;
 }
 
 .physics-theme.dark .physics-rsvp .rsvp-btn.going.active {
-	background: rgba(56, 189, 248, 0.25);
-	border-color: rgba(56, 189, 248, 0.7);
-	color: #e0f2fe;
-	box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+	background: #075985;
+	border-color: #075985;
+	color: #ffffff;
+	box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3);
 }
 
-/* Secondary Maybe / Not Going — neutral dark */
+/* Secondary Maybe / Not Going — clearer dark */
 .physics-theme.dark .physics-rsvp .rsvp-btn.maybe,
 .physics-theme.dark .physics-rsvp .rsvp-btn.not-going {
-	background: rgba(255, 255, 255, 0.05);
-	border-color: rgba(255, 255, 255, 0.1);
-	color: rgba(232, 232, 240, 0.5);
+	background: rgba(255, 255, 255, 0.08);
+	border-color: rgba(255, 255, 255, 0.3);
+	color: #ffffff;
 }
 
 .physics-theme.dark .physics-rsvp .rsvp-btn.maybe:hover:not(:disabled),
 .physics-theme.dark .physics-rsvp .rsvp-btn.not-going:hover:not(:disabled) {
-	border-color: rgba(255, 255, 255, 0.2);
-	color: rgba(232, 232, 240, 0.8);
+	background: rgba(255, 255, 255, 0.15);
+	border-color: rgba(255, 255, 255, 0.5);
+	color: #ffffff;
+}
+
+.physics-theme.dark .physics-rsvp .rsvp-btn.maybe.active {
+	background: #eab308;
+	border-color: #eab308;
+	color: #ffffff;
+}
+
+.physics-theme.dark .physics-rsvp .rsvp-btn.not-going.active {
+	background: #dc2626;
+	border-color: #dc2626;
+	color: #ffffff;
 }
 
 /* Footer divider */
