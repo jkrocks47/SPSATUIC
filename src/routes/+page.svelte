@@ -93,7 +93,7 @@
 		<div class="content-container">
 			<!-- Events -->
 			<div class="events-blend">
-				<EventCalendar events={data.upcomingEvents} isLoggedIn={data.isLoggedIn} isVerified={data.isVerified} />
+				<EventCalendar events={data.upcomingEvents} />
 			</div>
 
 			<!-- Section header -->
