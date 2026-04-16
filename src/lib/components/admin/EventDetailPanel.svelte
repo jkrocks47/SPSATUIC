@@ -253,6 +253,47 @@
 		{/if}
 	</div>
 
+	<!-- Emailed Members -->
+	{#if announcementAlreadySent}
+		<div class="emailed-card">
+			<div class="emailed-header">
+				<div class="emailed-title">
+					<span class="sent-dot" aria-hidden="true"></span>
+					<h2>Emailed members ({emailedMembers.length})</h2>
+				</div>
+				{#if emailedMembers.length > 0}
+					<span class="emailed-subtitle">
+						Last sent {new Date(emailedMembers[emailedMembers.length - 1].sentAt).toLocaleString()}
+					</span>
+				{/if}
+			</div>
+			{#if emailedMembers.length > 0}
+				<div class="emailed-scroll">
+					<table class="data-table">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Email</th>
+								<th>Sent At</th>
+							</tr>
+						</thead>
+						<tbody>
+							{#each emailedMembers as m}
+								<tr>
+									<td class="name-cell">{m.firstName} {m.lastName}</td>
+									<td class="email-cell">{m.email}</td>
+									<td>{new Date(m.sentAt).toLocaleString()}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{:else}
+				<p class="emailed-empty">No recipient log found for this event.</p>
+			{/if}
+		</div>
+	{/if}
+
 	<!-- Correction Section -->
 	{#if announcementAlreadySent}
 		<div class="announcement-card correction-card">
@@ -305,33 +346,6 @@
 					</div>
 				</div>
 			{/if}
-		</div>
-	{/if}
-
-	<!-- Emailed Members -->
-	{#if emailedMembers.length > 0}
-		<div class="table-card">
-			<div class="table-header">
-				<h2>Emailed ({emailedMembers.length})</h2>
-			</div>
-			<table class="data-table">
-				<thead>
-					<tr>
-						<th>Name</th>
-						<th>Email</th>
-						<th>Sent At</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each emailedMembers as m}
-						<tr>
-							<td class="name-cell">{m.firstName} {m.lastName}</td>
-							<td class="email-cell">{m.email}</td>
-							<td>{new Date(m.sentAt).toLocaleString()}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
 		</div>
 	{/if}
 
@@ -714,6 +728,66 @@
 	.cancel-btn:hover {
 		background: #f3f4f6;
 		color: #374151;
+	}
+
+	/* Emailed members */
+	.emailed-card {
+		background: #f0fdf4;
+		border: 1px solid #bbf7d0;
+		border-left: 4px solid #10b981;
+		border-radius: 0.5rem;
+		margin-bottom: 1.5rem;
+		overflow: hidden;
+	}
+
+	.emailed-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.85rem 1rem;
+		border-bottom: 1px solid #bbf7d0;
+		flex-wrap: wrap;
+	}
+
+	.emailed-title {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.emailed-title h2 {
+		font-size: 1.05rem;
+		font-weight: 600;
+		color: #14532d;
+		margin: 0;
+	}
+
+	.sent-dot {
+		width: 0.6rem;
+		height: 0.6rem;
+		border-radius: 9999px;
+		background: #10b981;
+		box-shadow: 0 0 0 3px #dcfce7;
+	}
+
+	.emailed-subtitle {
+		font-size: 0.75rem;
+		color: #166534;
+	}
+
+	.emailed-scroll {
+		max-height: 20rem;
+		overflow-y: auto;
+		background: #fff;
+	}
+
+	.emailed-empty {
+		margin: 0;
+		padding: 0.85rem 1rem;
+		font-size: 0.85rem;
+		color: #6b7280;
+		background: #fff;
 	}
 
 	/* Table */

@@ -34,7 +34,7 @@
 		<!-- Row 1: Brand + Club Logo -->
 		<div class="flex items-center justify-between pt-3 pb-2">
 			<a href="/astronomy" class="flex items-center gap-3 no-underline">
-				<span class="font-mono text-[9px] tracking-[0.3em] text-astro-cream/40 uppercase" style="writing-mode: vertical-rl; transform: rotate(180deg);">TOCK</span>
+				<span class="font-mono text-[9px] tracking-[0.3em] text-astro-cream/40 uppercase" style="writing-mode: vertical-rl; transform: rotate(180deg);">SPS</span>
 				<span class="font-display text-2xl md:text-3xl font-bold tracking-[0.08em] text-astro-cream uppercase">
 					UIC ASTRONOMY
 				</span>
