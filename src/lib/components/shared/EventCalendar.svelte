@@ -13,9 +13,11 @@
 	}
 
 	let {
-		events = []
+		events = [],
+		maxEvents = undefined
 	}: {
 		events: CalendarEvent[];
+		maxEvents?: number;
 	} = $props();
 
 	let now = new Date();
@@ -62,6 +64,14 @@
 		}
 		return filtered;
 	});
+
+	let displayEvents = $derived(
+		maxEvents !== undefined ? filteredEvents.slice(0, maxEvents) : filteredEvents
+	);
+
+	let hasMoreEvents = $derived(
+		maxEvents !== undefined && filteredEvents.length > maxEvents
+	);
 
 	function prevMonth() {
 		if (currentMonth === 0) { currentMonth = 11; currentYear--; }
@@ -146,8 +156,8 @@
 				<p class="panel-heading">Upcoming Events</p>
 			{/if}
 
-			{#if filteredEvents.length > 0}
-				{#each filteredEvents as event}
+			{#if displayEvents.length > 0}
+				{#each displayEvents as event}
 					{@const shortDate = formatShortDate(event.date)}
 					<a
 						href={eventDetailUrl(event)}
@@ -182,6 +192,11 @@
 						</div>
 					</a>
 				{/each}
+				{#if hasMoreEvents}
+					<a href="/events" class="view-all-btn">
+						View All Events &rarr;
+					</a>
+				{/if}
 			{:else}
 				<div class="empty-state">
 					<p>{selectedDay !== null ? 'No events on this day' : 'No upcoming events'}</p>
@@ -537,6 +552,29 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+
+	.view-all-btn {
+		display: block;
+		text-align: center;
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 0.7rem;
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
+		color: rgba(245, 240, 232, 0.6);
+		text-decoration: none;
+		border: 1px solid rgba(206, 17, 38, 0.25);
+		padding: 0.7rem 1.5rem;
+		border-radius: 10px;
+		background: rgba(206, 17, 38, 0.06);
+		transition: all 0.25s ease;
+		margin-top: 0.25rem;
+	}
+	.view-all-btn:hover {
+		color: #f5f0e8;
+		border-color: rgba(206, 17, 38, 0.5);
+		background: rgba(206, 17, 38, 0.12);
+		box-shadow: 0 0 20px rgba(206, 17, 38, 0.15);
 	}
 
 	/* Mobile */

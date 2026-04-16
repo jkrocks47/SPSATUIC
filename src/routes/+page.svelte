@@ -93,7 +93,7 @@
 		<div class="content-container">
 			<!-- Events -->
 			<div class="events-blend">
-				<EventCalendar events={data.upcomingEvents} />
+				<EventCalendar events={data.upcomingEvents} maxEvents={3} />
 			</div>
 
 			<!-- Section header -->
