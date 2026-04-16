@@ -33,7 +33,7 @@ export const actions: Actions = {
 		const honeypotFail = checkHoneypot(formData);
 		if (honeypotFail) return honeypotFail;
 
-		const timingFail = checkSubmissionTiming(formData);
+		const timingFail = checkSubmissionTiming(formData, 0.5);
 		if (timingFail) return timingFail;
 
 		const redirectTo = formData.get('redirectTo') as string | null;
