@@ -6,6 +6,7 @@ import {
 	getEventDetailForAdmin,
 	getAnnouncementRecipients,
 	getAnnouncementRecipientCount,
+	getExcludedAnnouncementBreakdown,
 	getCorrectionRecipients,
 	getEmailedMembers
 } from '$lib/server/db/queries';
@@ -19,9 +20,10 @@ export const load: PageServerLoad = async ({ params }) => {
 		error(404, 'Event not found.');
 	}
 
-	const [announcementRecipientCount, emailedMembers] = await Promise.all([
+	const [announcementRecipientCount, emailedMembers, excludedBreakdown] = await Promise.all([
 		getAnnouncementRecipientCount(params.id, 'astronomy'),
-		getEmailedMembers(params.id)
+		getEmailedMembers(params.id),
+		getExcludedAnnouncementBreakdown(params.id, 'astronomy')
 	]);
 
 	return {
@@ -32,6 +34,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		announcementRecipientCount,
 		announcementAlreadySent: !!result.event.announcementSentAt,
 		emailedMembers,
+		excludedBreakdown,
 		checkinQuestions: result.event.checkinQuestions ?? [],
 		checkinResponses: result.checkinResponses
 	};

@@ -18,6 +18,7 @@
 	announcementRecipientCount={data.announcementRecipientCount}
 	announcementAlreadySent={data.announcementAlreadySent}
 	emailedMembers={data.emailedMembers}
+	excludedBreakdown={data.excludedBreakdown}
 	checkinQuestions={data.checkinQuestions}
 	checkinResponses={data.checkinResponses}
 />

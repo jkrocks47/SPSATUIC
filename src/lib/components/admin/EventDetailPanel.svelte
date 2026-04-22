@@ -37,12 +37,13 @@
 		backHref: string;
 		announcementRecipientCount: number;
 		announcementAlreadySent: boolean;
+		excludedBreakdown?: { unverified: number; optedOut: number };
 		emailedMembers?: EmailedMember[];
 		checkinQuestions?: CheckinQuestion[];
 		checkinResponses?: CheckinResponseRow[];
 	}
 
-	let { event, rsvpList, stats, historicalRate, clubType, backHref, announcementRecipientCount, announcementAlreadySent, emailedMembers = [], checkinQuestions = [], checkinResponses = [] }: Props = $props();
+	let { event, rsvpList, stats, historicalRate, clubType, backHref, announcementRecipientCount, announcementAlreadySent, excludedBreakdown = { unverified: 0, optedOut: 0 }, emailedMembers = [], checkinQuestions = [], checkinResponses = [] }: Props = $props();
 
 	let showResponses = $state(false);
 
@@ -213,6 +214,11 @@
 				Send announcement to <strong>{announcementRecipientCount}</strong> verified {clubLabel} member{announcementRecipientCount !== 1 ? 's' : ''}.
 			{:else}
 				All eligible members have already been notified.
+				{#if excludedBreakdown.unverified > 0 || excludedBreakdown.optedOut > 0}
+					<span class="excluded-info">
+						({#if excludedBreakdown.unverified > 0}{excludedBreakdown.unverified} unverified{/if}{#if excludedBreakdown.unverified > 0 && excludedBreakdown.optedOut > 0}, {/if}{#if excludedBreakdown.optedOut > 0}{excludedBreakdown.optedOut} opted out{/if})
+					</span>
+				{/if}
 			{/if}
 		</p>
 
@@ -651,6 +657,11 @@
 
 	.announcement-info strong {
 		color: #374151;
+	}
+
+	.excluded-info {
+		color: #9ca3af;
+		font-size: 0.8rem;
 	}
 
 	.announcement-success {

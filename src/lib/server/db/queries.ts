@@ -416,6 +416,23 @@ export async function getAnnouncementRecipientCount(
 	return result[0]?.count ?? 0;
 }
 
+export async function getExcludedAnnouncementBreakdown(
+	eventId: string,
+	clubType: ClubType
+): Promise<{ unverified: number; optedOut: number }> {
+	const clubColumn = clubType === 'astronomy' ? members.astronomyMember : members.physicsMember;
+
+	const result = await db
+		.select({
+			unverified: sql<number>`count(*) filter (where ${members.emailVerified} = false)::int`,
+			optedOut: sql<number>`count(*) filter (where ${members.emailVerified} = true and ${members.emailOptOut} = true)::int`
+		})
+		.from(members)
+		.where(eq(clubColumn, true));
+
+	return result[0] ?? { unverified: 0, optedOut: 0 };
+}
+
 export async function getEmailedMembers(
 	eventId: string
 ): Promise<{ id: string; firstName: string; lastName: string; email: string; sentAt: Date }[]> {
