@@ -1,0 +1,1 @@
+ALTER TABLE "events" ADD COLUMN "rsvp_required" boolean DEFAULT false NOT NULL;
