@@ -29,6 +29,7 @@
 			location: string | null;
 			description: string | null;
 			isPublished: boolean | null;
+			rsvpRequired: boolean | null;
 		};
 		rsvpList: RsvpMemberDetail[];
 		stats: EventStats;
@@ -45,6 +46,13 @@
 
 	let { event, rsvpList, stats, historicalRate, clubType, backHref, announcementRecipientCount, announcementAlreadySent, excludedBreakdown = { unverified: 0, optedOut: 0 }, emailedMembers = [], checkinQuestions = [], checkinResponses = [] }: Props = $props();
 
+	let excludedSummary = $derived.by(() => {
+		const parts: string[] = [];
+		if (excludedBreakdown.unverified > 0) parts.push(`${excludedBreakdown.unverified} unverified`);
+		if (excludedBreakdown.optedOut > 0) parts.push(`${excludedBreakdown.optedOut} opted out`);
+		return parts.length ? `(${parts.join(', ')})` : '';
+	});
+
 	let showResponses = $state(false);
 
 	let hasResponseData = $derived(checkinQuestions.length > 0 && checkinResponses.some(r => r.responses && Object.keys(r.responses).length > 0));
@@ -55,6 +63,10 @@
 	let correctionSending = $state(false);
 	let correctionResult = $state<{ success?: boolean; sentCount?: number; error?: string } | null>(null);
 	let correctionConfirming = $state(false);
+
+	let rsvpReminderSending = $state(false);
+	let rsvpReminderResult = $state<{ success?: boolean; sentCount?: number; error?: string } | null>(null);
+	let rsvpReminderConfirming = $state(false);
 
 	let announcementConfirming = $state(false);
 
@@ -155,9 +167,14 @@
 		<a href={backHref} class="back-link">&larr; Back to Events</a>
 		<div class="header-row">
 			<h1 class="page-title">{event.title}</h1>
-			<span class="status-badge" class:published={event.isPublished} class:draft={!event.isPublished}>
-				{event.isPublished ? 'Published' : 'Draft'}
-			</span>
+			<div class="header-badges">
+				<span class="status-badge" class:published={event.isPublished} class:draft={!event.isPublished}>
+					{event.isPublished ? 'Published' : 'Draft'}
+				</span>
+				{#if event.rsvpRequired}
+					<span class="rsvp-required-badge">RSVP Required</span>
+				{/if}
+			</div>
 		</div>
 		<p class="event-meta">
 			{event.date}
@@ -214,10 +231,8 @@
 				Send announcement to <strong>{announcementRecipientCount}</strong> verified {clubLabel} member{announcementRecipientCount !== 1 ? 's' : ''}.
 			{:else}
 				All eligible members have already been notified.
-				{#if excludedBreakdown.unverified > 0 || excludedBreakdown.optedOut > 0}
-					<span class="excluded-info">
-						({#if excludedBreakdown.unverified > 0}{excludedBreakdown.unverified} unverified{/if}{#if excludedBreakdown.unverified > 0 && excludedBreakdown.optedOut > 0}, {/if}{#if excludedBreakdown.optedOut > 0}{excludedBreakdown.optedOut} opted out{/if})
-					</span>
+				{#if excludedSummary}
+					<span class="excluded-info">{excludedSummary}</span>
 				{/if}
 			{/if}
 		</p>
@@ -349,6 +364,61 @@
 							</button>
 						</form>
 						<button class="cancel-btn" onclick={() => correctionConfirming = false}>Cancel</button>
+					</div>
+				</div>
+			{/if}
+		</div>
+	{/if}
+
+	<!-- RSVP Reminder Section -->
+	{#if event.rsvpRequired}
+		<div class="announcement-card rsvp-reminder-card">
+			<div class="announcement-header">
+				<h2>Send RSVP Reminder</h2>
+			</div>
+
+			{#if rsvpReminderResult?.success}
+				<p class="announcement-success">RSVP reminder sent to {rsvpReminderResult.sentCount} member{rsvpReminderResult.sentCount !== 1 ? 's' : ''}.</p>
+			{/if}
+
+			{#if rsvpReminderResult?.error}
+				<p class="announcement-error">{rsvpReminderResult.error}</p>
+			{/if}
+
+			<p class="announcement-info">
+				Send an email to verified {clubLabel} members who have not yet RSVPd "going", reminding them that RSVP is required to attend.
+			</p>
+
+			{#if !rsvpReminderConfirming}
+				<button
+					class="announce-btn rsvp-reminder-btn"
+					onclick={() => rsvpReminderConfirming = true}
+				>
+					Send RSVP Reminder
+				</button>
+			{:else}
+				<div class="confirm-box">
+					<p class="confirm-text">Send RSVP required reminder to all eligible members who have not yet RSVPd "going"?</p>
+					<div class="confirm-actions">
+						<form method="POST" action="?/sendRsvpReminder" use:enhance={() => {
+							rsvpReminderSending = true;
+							rsvpReminderResult = null;
+							rsvpReminderConfirming = false;
+							return async ({ result, update }) => {
+								rsvpReminderSending = false;
+								if (result.type === 'success') {
+									rsvpReminderResult = { success: true, sentCount: result.data?.sentCount as number };
+								} else if (result.type === 'failure') {
+									rsvpReminderResult = { error: result.data?.error as string };
+								}
+								await update({ reset: false });
+							};
+						}}>
+							<button type="submit" class="announce-btn rsvp-reminder-btn" disabled={rsvpReminderSending}>
+								{rsvpReminderSending ? 'Sending...' : 'Yes, Send Reminder'}
+							</button>
+						</form>
+						<button class="cancel-btn" onclick={() => rsvpReminderConfirming = false}>Cancel</button>
 					</div>
 				</div>
 			{/if}
@@ -561,6 +631,24 @@
 	.status-badge.published { background: #dcfce7; color: #16a34a; }
 	.status-badge.draft { background: #fef3c7; color: #d97706; }
 
+	.header-badges {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		flex-shrink: 0;
+	}
+
+	.rsvp-required-badge {
+		display: inline-block;
+		padding: 0.15rem 0.6rem;
+		border-radius: 9999px;
+		font-size: 0.7rem;
+		font-weight: 600;
+		background: rgba(239,68,68,0.12);
+		color: #ef4444;
+		border: 1px solid rgba(239,68,68,0.3);
+	}
+
 	.event-meta {
 		font-size: 0.85rem;
 		color: #6b7280;
@@ -701,6 +789,10 @@
 	.correction-card { border-color: #fde68a; }
 	.correction-btn { background: #d97706; }
 	.correction-btn:hover { background: #b45309; }
+
+	.rsvp-reminder-card { border-color: rgba(239,68,68,0.3); }
+	.rsvp-reminder-btn { background: #dc2626; }
+	.rsvp-reminder-btn:hover { background: #b91c1c; }
 
 	.confirm-box {
 		background: #f9fafb;

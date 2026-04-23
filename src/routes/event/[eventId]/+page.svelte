@@ -61,6 +61,12 @@
 						{/if}
 					</div>
 				{/if}
+				{#if event.rsvpRequired}
+					<div class="detail-row rsvp-required-row">
+						<span class="detail-icon">&#9888;</span>
+						<span class="rsvp-required-text">RSVP required to attend</span>
+					</div>
+				{/if}
 			</div>
 
 			<!-- Description -->
@@ -266,6 +272,12 @@
 
 	.physics .detail-text {
 		color: #374151;
+	}
+
+	.rsvp-required-text {
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: #f87171;
 	}
 
 	.detail-link {

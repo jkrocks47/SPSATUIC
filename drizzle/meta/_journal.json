@@ -92,6 +92,13 @@
       "when": 1775240570421,
       "tag": "0012_messy_madripoor",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1745438400000,
+      "tag": "0013_rsvp_required",
+      "breakpoints": true
     }
   ]
 }

@@ -90,6 +90,7 @@ export const actions: Actions = {
 			locationUrl: formData.get('locationUrl') as string,
 			clubType: 'physics' as const,
 			isPublished: formData.get('isPublished') === 'on',
+			rsvpRequired: formData.get('rsvpRequired') === 'on',
 			maxAttendees: formData.get('maxAttendees')
 				? Number(formData.get('maxAttendees'))
 				: undefined
@@ -138,6 +139,7 @@ export const actions: Actions = {
 			imageUrl,
 			imageGroupId,
 			isPublished: parsed.data.isPublished,
+			rsvpRequired: parsed.data.rsvpRequired,
 			maxAttendees: parsed.data.maxAttendees || null,
 			checkinCode: generateCheckinCode(),
 			checkinQuestions,
@@ -161,6 +163,7 @@ export const actions: Actions = {
 			locationUrl: formData.get('locationUrl') as string,
 			clubType: 'physics' as const,
 			isPublished: formData.get('isPublished') === 'on',
+			rsvpRequired: formData.get('rsvpRequired') === 'on',
 			maxAttendees: formData.get('maxAttendees')
 				? Number(formData.get('maxAttendees'))
 				: undefined
@@ -190,6 +193,7 @@ export const actions: Actions = {
 				location: parsed.data.location || null,
 				locationUrl: parsed.data.locationUrl || null,
 				isPublished: parsed.data.isPublished,
+				rsvpRequired: parsed.data.rsvpRequired,
 				maxAttendees: parsed.data.maxAttendees || null,
 				checkinQuestions: checkinQuestions !== undefined ? checkinQuestions : undefined,
 				updatedAt: new Date()

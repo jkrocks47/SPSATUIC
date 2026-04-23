@@ -227,6 +227,7 @@
 											<div class="form-group"><label>Location URL</label><input type="url" name="locationUrl" value={event.locationUrl || ''} /></div>
 											<div class="form-group"><label>Max Attendees</label><input type="number" name="maxAttendees" min="1" value={event.maxAttendees || ''} /></div>
 											<div class="form-group checkbox-group"><label><input type="checkbox" name="isPublished" checked={event.isPublished} /> Published</label></div>
+										<div class="form-group checkbox-group"><label><input type="checkbox" name="rsvpRequired" checked={event.rsvpRequired} /> RSVP Required</label></div>
 										</div>
 										<div class="full-width">
 											<CheckinQuestionBuilder bind:questions={editQuestions} />

@@ -153,7 +153,7 @@ export async function getEstimatedTurnout(eventId: string): Promise<number> {
 	const memberIds = rsvps.map((r) => r.memberId);
 	const scores = await getMemberReliabilityScores(memberIds);
 
-	const DEFAULT_RELIABILITY = 0.5;
+	const DEFAULT_RELIABILITY = 1.0;
 	const MAYBE_WEIGHT = 0.3;
 
 	let estimated = 0;
@@ -263,7 +263,7 @@ export async function getBatchEstimatedTurnout(
 	const allMemberIds = [...new Set(rsvps.map((r) => r.memberId))];
 	const scores = await getMemberReliabilityScores(allMemberIds);
 
-	const DEFAULT_RELIABILITY = 0.5;
+	const DEFAULT_RELIABILITY = 1.0;
 	const MAYBE_WEIGHT = 0.3;
 	const turnoutMap = new Map<string, number>();
 
@@ -391,46 +391,30 @@ export async function getAnnouncementRecipients(
 		);
 }
 
-export async function getAnnouncementRecipientCount(
+export async function getAnnouncementCounts(
 	eventId: string,
 	clubType: ClubType
-): Promise<number> {
-	const clubColumn = clubType === 'astronomy' ? members.astronomyMember : members.physicsMember;
-
-	const result = await db
-		.select({ count: sql<number>`count(*)::int` })
-		.from(members)
-		.where(
-			and(
-				eq(clubColumn, true),
-				eq(members.emailVerified, true),
-				eq(members.emailOptOut, false),
-				sql`NOT EXISTS (
-					SELECT 1 FROM event_announcement_logs eal
-					WHERE eal.event_id = ${eventId}
-						AND eal.member_id = ${members.id}
-				)`
-			)
-		);
-
-	return result[0]?.count ?? 0;
-}
-
-export async function getExcludedAnnouncementBreakdown(
-	eventId: string,
-	clubType: ClubType
-): Promise<{ unverified: number; optedOut: number }> {
+): Promise<{ recipients: number; unverified: number; optedOut: number }> {
 	const clubColumn = clubType === 'astronomy' ? members.astronomyMember : members.physicsMember;
 
 	const result = await db
 		.select({
+			recipients: sql<number>`count(*) filter (
+				where ${members.emailVerified} = true
+					and ${members.emailOptOut} = false
+					and not exists (
+						select 1 from event_announcement_logs eal
+						where eal.event_id = ${eventId}
+							and eal.member_id = ${members.id}
+					)
+			)::int`,
 			unverified: sql<number>`count(*) filter (where ${members.emailVerified} = false)::int`,
 			optedOut: sql<number>`count(*) filter (where ${members.emailVerified} = true and ${members.emailOptOut} = true)::int`
 		})
 		.from(members)
 		.where(eq(clubColumn, true));
 
-	return result[0] ?? { unverified: 0, optedOut: 0 };
+	return result[0] ?? { recipients: 0, unverified: 0, optedOut: 0 };
 }
 
 export async function getEmailedMembers(
@@ -448,6 +432,34 @@ export async function getEmailedMembers(
 		.innerJoin(members, eq(eventAnnouncementLogs.memberId, members.id))
 		.where(eq(eventAnnouncementLogs.eventId, eventId))
 		.orderBy(eventAnnouncementLogs.sentAt);
+}
+
+export async function getRsvpReminderRecipients(
+	eventId: string,
+	clubType: ClubType
+): Promise<{ id: string; email: string; firstName: string; unsubscribeToken: string }[]> {
+	const clubColumn = clubType === 'astronomy' ? members.astronomyMember : members.physicsMember;
+
+	return db
+		.select({
+			id: members.id,
+			email: members.email,
+			firstName: members.firstName,
+			unsubscribeToken: members.unsubscribeToken
+		})
+		.from(members)
+		.leftJoin(
+			eventRsvps,
+			and(eq(eventRsvps.memberId, members.id), eq(eventRsvps.eventId, eventId))
+		)
+		.where(
+			and(
+				eq(clubColumn, true),
+				eq(members.emailVerified, true),
+				eq(members.emailOptOut, false),
+				sql`(${eventRsvps.status} IS NULL OR ${eventRsvps.status} != 'going')`
+			)
+		);
 }
 
 export async function getCorrectionRecipients(

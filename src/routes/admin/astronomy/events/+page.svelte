@@ -136,6 +136,12 @@
 							Published
 						</label>
 					</div>
+					<div class="form-group checkbox-group">
+						<label>
+							<input type="checkbox" name="rsvpRequired" />
+							RSVP Required
+						</label>
+					</div>
 				</div>
 
 				<div class="full-width">
@@ -271,6 +277,12 @@
 												<label>
 													<input type="checkbox" name="isPublished" checked={event.isPublished} />
 													Published
+												</label>
+											</div>
+											<div class="form-group checkbox-group">
+												<label>
+													<input type="checkbox" name="rsvpRequired" checked={event.rsvpRequired} />
+													RSVP Required
 												</label>
 											</div>
 										</div>

@@ -36,7 +36,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 				location: event.location,
 				locationUrl: event.locationUrl,
 				imageUrl: event.imageUrl,
-				clubType: event.clubType
+				clubType: event.clubType,
+				rsvpRequired: event.rsvpRequired
 			},
 			isPast,
 			rsvpCounts: { going: 0, maybe: 0, not_going: 0 },
@@ -82,7 +83,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			location: event.location,
 			locationUrl: event.locationUrl,
 			imageUrl: event.imageUrl,
-			clubType: event.clubType
+			clubType: event.clubType,
+			rsvpRequired: event.rsvpRequired
 		},
 		isPast,
 		rsvpCounts: counts,

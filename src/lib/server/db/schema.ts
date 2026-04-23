@@ -99,6 +99,7 @@ export const events = pgTable('events', {
 	imageUrl: text('image_url'),
 	imageGroupId: text('image_public_id'),
 	isPublished: boolean('is_published').default(true),
+	rsvpRequired: boolean('rsvp_required').notNull().default(false),
 	maxAttendees: integer('max_attendees'),
 	checkinCode: text('checkin_code').unique(),
 	checkinQuestions: jsonb('checkin_questions').$type<CheckinQuestion[]>(),

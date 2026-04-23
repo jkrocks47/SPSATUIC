@@ -5,12 +5,12 @@ import { events, eventAnnouncementLogs } from '$lib/server/db/schema';
 import {
 	getEventDetailForAdmin,
 	getAnnouncementRecipients,
-	getAnnouncementRecipientCount,
-	getExcludedAnnouncementBreakdown,
+	getAnnouncementCounts,
 	getCorrectionRecipients,
-	getEmailedMembers
+	getEmailedMembers,
+	getRsvpReminderRecipients
 } from '$lib/server/db/queries';
-import { sendEventAnnouncementEmail, sendEventCorrectionEmail, getBaseUrl } from '$lib/server/email';
+import { sendEventAnnouncementEmail, sendEventCorrectionEmail, sendRsvpRequiredReminderEmail, getBaseUrl } from '$lib/server/email';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -20,11 +20,11 @@ export const load: PageServerLoad = async ({ params }) => {
 		error(404, 'Event not found.');
 	}
 
-	const [announcementRecipientCount, emailedMembers, excludedBreakdown] = await Promise.all([
-		getAnnouncementRecipientCount(params.id, 'astronomy'),
-		getEmailedMembers(params.id),
-		getExcludedAnnouncementBreakdown(params.id, 'astronomy')
+	const [announcementCounts, emailedMembers] = await Promise.all([
+		getAnnouncementCounts(params.id, 'astronomy'),
+		getEmailedMembers(params.id)
 	]);
+	const { recipients: announcementRecipientCount, unverified, optedOut } = announcementCounts;
 
 	return {
 		event: result.event,
@@ -34,7 +34,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		announcementRecipientCount,
 		announcementAlreadySent: !!result.event.announcementSentAt,
 		emailedMembers,
-		excludedBreakdown,
+		excludedBreakdown: { unverified, optedOut },
 		checkinQuestions: result.event.checkinQuestions ?? [],
 		checkinResponses: result.checkinResponses
 	};
@@ -70,7 +70,8 @@ export const actions: Actions = {
 						date: event.date,
 						time: event.time,
 						location: event.location,
-						clubType: 'astronomy'
+						clubType: 'astronomy',
+						rsvpRequired: event.rsvpRequired ?? false
 					},
 					eventUrl,
 					recipient.unsubscribeToken
@@ -96,6 +97,53 @@ export const actions: Actions = {
 			.where(eq(events.id, params.id));
 
 		return { success: true, sentCount };
+	},
+
+	sendRsvpReminder: async ({ params }) => {
+		const eventResult = await db
+			.select()
+			.from(events)
+			.where(eq(events.id, params.id))
+			.limit(1);
+
+		if (eventResult.length === 0) return fail(404, { error: 'Event not found.' });
+
+		const event = eventResult[0];
+
+		if (!event.rsvpRequired) {
+			return fail(400, { error: 'This event does not require RSVP.' });
+		}
+
+		const recipients = await getRsvpReminderRecipients(params.id, 'astronomy');
+
+		if (recipients.length === 0) return fail(400, { error: 'No eligible recipients.' });
+
+		const baseUrl = getBaseUrl();
+		const eventUrl = `${baseUrl}/event/${params.id}`;
+		let sentCount = 0;
+
+		for (const recipient of recipients) {
+			try {
+				await sendRsvpRequiredReminderEmail(
+					recipient.email,
+					recipient.firstName,
+					{
+						title: event.title,
+						date: event.date,
+						time: event.time,
+						location: event.location,
+						clubType: 'astronomy'
+					},
+					eventUrl,
+					recipient.unsubscribeToken
+				);
+				sentCount++;
+			} catch (err) {
+				console.error(`[RsvpReminder] Failed to send to ${recipient.email}:`, err);
+			}
+		}
+
+		return { success: true, sentCount, isRsvpReminder: true };
 	},
 
 	sendCorrection: async ({ params }) => {

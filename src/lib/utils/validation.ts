@@ -14,6 +14,7 @@ export const eventSchema = z.object({
 	locationUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
 	clubType: z.enum(['astronomy', 'physics']),
 	isPublished: z.boolean().default(true),
+	rsvpRequired: z.boolean().default(false),
 	maxAttendees: z.number().int().positive().optional()
 });
 

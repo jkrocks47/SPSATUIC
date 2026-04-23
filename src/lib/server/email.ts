@@ -209,6 +209,7 @@ export async function sendEventAnnouncementEmail(
 		time: string | null;
 		location: string | null;
 		clubType: string;
+		rsvpRequired?: boolean;
 	},
 	eventUrl: string,
 	unsubscribeToken: string
@@ -242,7 +243,62 @@ export async function sendEventAnnouncementEmail(
       <p style="margin: 0 0 0.25rem 0; font-size: 0.9rem;">${dateFormatted}${event.time ? ` at ${escapeHtml(event.time)}` : ''}</p>
       ${event.location ? `<p style="margin: 0; font-size: 0.9rem;">${escapeHtml(event.location)}</p>` : ''}
     </div>
+    ${event.rsvpRequired ? `<div style="margin: 0.75rem 0; padding: 0.5rem 0.75rem; background: rgba(239,68,68,0.15); border-left: 3px solid #ef4444; border-radius: 4px;"><strong style="color: #f87171;">RSVP is required to attend this event.</strong></div>` : ''}
     <a href="${eventUrl}" style="display: inline-block; background: #4f46e5; color: #fff; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 500; margin: 1rem 0;">View Event &amp; RSVP</a>
+    <p style="font-size: 0.85rem; color: #9ca3af;">You're receiving this because you're a member of the ${clubLabel} on ${SITE_NAME}.</p>
+    ${buildUnsubscribeFooter(unsubscribeToken)}
+  </div>
+</body>
+</html>`
+	});
+}
+
+export async function sendRsvpRequiredReminderEmail(
+	email: string,
+	firstName: string,
+	event: {
+		title: string;
+		date: string;
+		time: string | null;
+		location: string | null;
+		clubType: string;
+	},
+	eventUrl: string,
+	unsubscribeToken: string
+) {
+	const resend = getResend();
+	const clubLabel = event.clubType === 'astronomy' ? 'Astronomy Club' : 'Physics Club';
+	const dateFormatted = new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', {
+		weekday: 'long',
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric'
+	});
+
+	await resend.emails.send({
+		from: FROM_EMAIL,
+		to: email,
+		subject: `[${SITE_NAME}] RSVP Required: ${event.title} — ${clubLabel}`,
+		headers: getUnsubscribeHeaders(unsubscribeToken),
+		html: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: 'Helvetica Neue', Arial, sans-serif; background: #0a0a0f; color: #e5e7eb; padding: 2rem;">
+  <div style="max-width: 480px; margin: 0 auto; background: #191923; border-radius: 12px; padding: 2rem; border: 1px solid rgba(79,70,229,0.3);">
+    <h1 style="font-size: 1.5rem; color: #fff; margin-bottom: 0.5rem;">${SITE_NAME}</h1>
+    <p style="color: rgba(255,255,255,0.5); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.5rem;">RSVP Required &middot; ${clubLabel}</p>
+    <p>Hi ${escapeHtml(firstName)},</p>
+    <p>A friendly reminder that <strong>RSVP is required</strong> to attend the following event:</p>
+    <div style="margin: 1rem 0; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 3px solid #4f46e5;">
+      <p style="margin: 0 0 0.5rem 0; font-weight: 600; color: #fff;">${escapeHtml(event.title)}</p>
+      <p style="margin: 0 0 0.25rem 0; font-size: 0.9rem;">${dateFormatted}${event.time ? ` at ${escapeHtml(event.time)}` : ''}</p>
+      ${event.location ? `<p style="margin: 0; font-size: 0.9rem;">${escapeHtml(event.location)}</p>` : ''}
+    </div>
+    <div style="margin: 0.75rem 0; padding: 0.5rem 0.75rem; background: rgba(239,68,68,0.15); border-left: 3px solid #ef4444; border-radius: 4px;">
+      <strong style="color: #f87171;">You must RSVP to attend. Spots may be limited.</strong>
+    </div>
+    <a href="${eventUrl}" style="display: inline-block; background: #4f46e5; color: #fff; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 500; margin: 1rem 0;">RSVP Now</a>
     <p style="font-size: 0.85rem; color: #9ca3af;">You're receiving this because you're a member of the ${clubLabel} on ${SITE_NAME}.</p>
     ${buildUnsubscribeFooter(unsubscribeToken)}
   </div>
