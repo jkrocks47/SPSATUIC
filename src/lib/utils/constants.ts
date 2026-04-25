@@ -1,7 +1,7 @@
 export const CLUB_TYPES = ['astronomy', 'physics'] as const;
 export type ClubType = (typeof CLUB_TYPES)[number];
 
-export const ROLES = ['super_admin', 'astronomy_admin', 'physics_admin'] as const;
+export const ROLES = ['super_admin', 'astronomy_admin', 'physics_admin', 'physics_faculty'] as const;
 export type Role = (typeof ROLES)[number];
 
 export const MEMBER_ROLES = ['member', 'board'] as const;
@@ -29,6 +29,15 @@ export const UIC_COORDINATES = {
 export const CONTACT_EMAILS = ['mwell8@uic.edu', 'uicastronomyclub@gmail.com'];
 
 export function canManageClub(role: Role | null, club: ClubType): boolean {
+	if (!role) return false;
+	if (role === 'super_admin') return true;
+	if (role === 'astronomy_admin' && club === 'astronomy') return true;
+	if (role === 'physics_admin' && club === 'physics') return true;
+	if (role === 'physics_faculty' && club === 'physics') return true;
+	return false;
+}
+
+export function canManageClubContent(role: Role | null, club: ClubType): boolean {
 	if (!role) return false;
 	if (role === 'super_admin') return true;
 	if (role === 'astronomy_admin' && club === 'astronomy') return true;

@@ -13,6 +13,7 @@
 	let topInterest = $derived(sortedByTotal.length > 0 ? sortedByTotal[0] : null);
 	let canManageAstronomy = $derived(canManageClub(member?.adminRole ?? null, 'astronomy'));
 	let canManagePhysics = $derived(canManageClub(member?.adminRole ?? null, 'physics'));
+	let isFaculty = $derived(member?.adminRole === 'physics_faculty');
 </script>
 
 <svelte:head>
@@ -70,7 +71,7 @@
 		<h1 class="dashboard-title">Welcome, {member.firstName}</h1>
 		<p class="dashboard-subtitle">Manage your club content from here.</p>
 
-		{#if membershipStats}
+		{#if membershipStats && !isFaculty}
 			<div class="stats-grid">
 				<div class="stat-card">
 					<span class="stat-value">{membershipStats.totalMembers}</span>

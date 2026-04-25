@@ -33,6 +33,12 @@
 	let member = $derived($page.data.currentUser);
 	let canManageAstronomy = $derived(canManageClub(member?.adminRole ?? null, 'astronomy'));
 	let canManagePhysics = $derived(canManageClub(member?.adminRole ?? null, 'physics'));
+	let isFaculty = $derived(member?.adminRole === 'physics_faculty');
+	let visiblePhysicsLinks = $derived(
+		isFaculty
+			? physicsLinks.filter((l) => l.href === '/admin/physics' || l.href === '/admin/physics/events')
+			: physicsLinks
+	);
 </script>
 
 {#if !member?.adminRole}
@@ -54,6 +60,7 @@
 					Dashboard
 				</a>
 
+				{#if !isFaculty}
 				<div class="nav-section">
 					<span class="nav-section-label">Membership</span>
 					{#each membershipLinks as link}
@@ -67,6 +74,7 @@
 						</a>
 					{/if}
 				</div>
+				{/if}
 
 				{#if canManageAstronomy}
 				<div class="nav-section">
@@ -82,7 +90,7 @@
 				{#if canManagePhysics}
 				<div class="nav-section">
 					<span class="nav-section-label">Physics</span>
-					{#each physicsLinks as link}
+					{#each visiblePhysicsLinks as link}
 						<a href={link.href} class="nav-item" class:active={currentPath === link.href}>
 							{link.label}
 						</a>

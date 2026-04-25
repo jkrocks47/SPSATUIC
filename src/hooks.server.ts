@@ -67,6 +67,17 @@ export const handle: Handle = async ({ event, resolve }) => {
 				throw redirect(303, '/admin');
 			}
 		}
+
+		// Faculty: events-only role, restricted to /admin, /admin/physics, /admin/physics/events*
+		if (event.locals.member.adminRole === 'physics_faculty') {
+			const allowed =
+				pathname === '/admin' ||
+				pathname === '/admin/physics' ||
+				pathname.startsWith('/admin/physics/events');
+			if (!allowed) {
+				throw redirect(303, '/admin/physics/events');
+			}
+		}
 	}
 
 	// Protect dashboard routes — require member login

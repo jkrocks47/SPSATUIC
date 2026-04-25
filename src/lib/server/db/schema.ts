@@ -27,7 +27,7 @@ const bytea = customType<{ data: Buffer }>({
 
 export const clubTypeEnum = pgEnum('club_type', ['astronomy', 'physics']);
 export const imageVariantEnum = pgEnum('image_variant', ['full', 'thumbnail']);
-export const roleEnum = pgEnum('role', ['super_admin', 'astronomy_admin', 'physics_admin']);
+export const roleEnum = pgEnum('role', ['super_admin', 'astronomy_admin', 'physics_admin', 'physics_faculty']);
 export const memberRoleEnum = pgEnum('member_role', ['member', 'board']);
 export const rsvpStatusEnum = pgEnum('rsvp_status', ['going', 'maybe', 'not_going']);
 export const reminderTypeEnum = pgEnum('reminder_type', ['7_day', '1_day', 'day_of']);

@@ -59,6 +59,7 @@
 							<option value="super_admin" selected={member.adminRole === 'super_admin'}>Super Admin</option>
 							<option value="astronomy_admin" selected={member.adminRole === 'astronomy_admin'}>Astronomy Admin</option>
 							<option value="physics_admin" selected={member.adminRole === 'physics_admin'}>Physics Admin</option>
+							<option value="physics_faculty" selected={member.adminRole === 'physics_faculty'}>Physics Faculty</option>
 						</select>
 					</form>
 				{:else if member.adminRole}

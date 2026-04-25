@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	let { data } = $props();
+	let isFaculty = $derived($page.data.currentUser?.adminRole === 'physics_faculty');
 </script>
 
 <svelte:head>
@@ -44,7 +46,9 @@
 		<h2>Quick Actions</h2>
 		<div class="action-buttons">
 			<a href="/admin/physics/events" class="action-btn">Add Event</a>
-			<a href="/admin/physics/gallery" class="action-btn">Upload Image</a>
+			{#if !isFaculty}
+				<a href="/admin/physics/gallery" class="action-btn">Upload Image</a>
+			{/if}
 		</div>
 	</div>
 </div>
