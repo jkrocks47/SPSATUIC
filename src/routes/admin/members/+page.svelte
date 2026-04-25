@@ -152,6 +152,7 @@
 											<option value="super_admin" selected={member.adminRole === 'super_admin'}>Super Admin</option>
 											<option value="astronomy_admin" selected={member.adminRole === 'astronomy_admin'}>Astronomy Admin</option>
 											<option value="physics_admin" selected={member.adminRole === 'physics_admin'}>Physics Admin</option>
+											<option value="physics_faculty" selected={member.adminRole === 'physics_faculty'}>Physics Faculty</option>
 										</select>
 									</form>
 								{:else if member.adminRole}
@@ -295,6 +296,7 @@
 	.admin-badge--super_admin { background: #ede9fe; color: #7c3aed; }
 	.admin-badge--astronomy_admin { background: #eef2ff; color: #4f46e5; }
 	.admin-badge--physics_admin { background: #e0f2fe; color: #0369a1; }
+	.admin-badge--physics_faculty { background: #fef3c7; color: #b45309; }
 
 	.chip-divider { width: 1px; background: #e5e7eb; align-self: stretch; margin: 0 0.1rem; }
 	.chip-admin.active { background: #f5f3ff; color: #7c3aed; border-color: #7c3aed; }
