@@ -31,6 +31,16 @@
 			</div>
 		{/if}
 
+		{#if data.notStarted && !data.isPast}
+			<div class="not-started-banner" role="alert">
+				<span class="not-started-icon" aria-hidden="true">&#9202;</span>
+				<div class="not-started-text">
+					<strong>Event hasn't started yet.</strong>
+					<span>Check-in opens once the event begins. Please RSVP below to let us know you're coming.</span>
+				</div>
+			</div>
+		{/if}
+
 		<!-- Event card -->
 		<div class="event-card">
 			{#if data.isPast}
@@ -139,6 +149,47 @@
 		flex-direction: column;
 		align-items: center;
 		gap: 1.25rem;
+	}
+
+	/* Not-started banner (shown when QR check-in fires before event start) */
+	.not-started-banner {
+		width: 100%;
+		display: flex;
+		align-items: flex-start;
+		gap: 0.75rem;
+		padding: 0.85rem 1rem;
+		border-radius: 0.75rem;
+		font-family: 'Inter', sans-serif;
+	}
+
+	.astronomy .not-started-banner {
+		background: rgba(234, 179, 8, 0.12);
+		border: 1px solid rgba(234, 179, 8, 0.35);
+		color: #fde68a;
+	}
+
+	.physics .not-started-banner {
+		background: #fef3c7;
+		border: 1px solid #fcd34d;
+		color: #92400e;
+	}
+
+	.not-started-icon {
+		font-size: 1.25rem;
+		line-height: 1;
+		flex-shrink: 0;
+	}
+
+	.not-started-text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		font-size: 0.85rem;
+		line-height: 1.4;
+	}
+
+	.not-started-text strong {
+		font-size: 0.9rem;
 	}
 
 	/* Club badge */

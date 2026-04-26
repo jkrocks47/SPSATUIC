@@ -4,6 +4,7 @@ import { db } from '$lib/server/db';
 import { events, eventCheckins, members } from '$lib/server/db/schema';
 import type { CheckinQuestion } from '$lib/server/db/schema';
 import { checkHoneypot, checkRateLimit, checkSubmissionTiming } from '$lib/server/security';
+import { hasEventStarted } from '$lib/utils/dates';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, url, locals }) => {
@@ -23,6 +24,7 @@ export const load: PageServerLoad = async ({ params, url, locals }) => {
 			id: events.id,
 			title: events.title,
 			date: events.date,
+			time: events.time,
 			clubType: events.clubType,
 			checkinCode: events.checkinCode,
 			checkinQuestions: events.checkinQuestions
@@ -39,6 +41,10 @@ export const load: PageServerLoad = async ({ params, url, locals }) => {
 
 	if (event.checkinCode !== code) {
 		error(400, 'Invalid check-in code.');
+	}
+
+	if (!hasEventStarted(event.date, event.time)) {
+		throw redirect(303, `/event/${event.id}?notStarted=1`);
 	}
 
 	// Check if already checked in
@@ -134,6 +140,7 @@ export const actions: Actions = {
 				id: events.id,
 				title: events.title,
 				date: events.date,
+				time: events.time,
 				clubType: events.clubType,
 				checkinCode: events.checkinCode,
 				checkinQuestions: events.checkinQuestions
@@ -150,6 +157,10 @@ export const actions: Actions = {
 
 		if (event.checkinCode !== code) {
 			return fail(400, { error: 'Invalid check-in code.' });
+		}
+
+		if (!hasEventStarted(event.date, event.time)) {
+			throw redirect(303, `/event/${event.id}?notStarted=1`);
 		}
 
 		// Auto-join club if not already a member

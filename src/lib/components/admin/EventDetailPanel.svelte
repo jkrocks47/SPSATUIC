@@ -198,8 +198,15 @@
 			<span class="stat-label">Checked In</span>
 		</div>
 		<div class="stat-card">
-			<span class="stat-value estimated">~{stats.estimatedTurnout}</span>
+			<span class="stat-value estimated">~{stats.turnout.estimated}</span>
 			<span class="stat-label">Est. Turnout</span>
+			{#if stats.turnout.highCount + stats.turnout.midCount + stats.turnout.excludedCount > 0}
+				<span class="turnout-breakdown" title="High: ≥75% reliability; Mid: 50–75%; Excluded: <50%, not counted in estimate">
+					{#if stats.turnout.highCount > 0}<span class="tier-pip high">{stats.turnout.highCount} high</span>{/if}
+					{#if stats.turnout.midCount > 0}<span class="tier-pip mid">{stats.turnout.midCount} mid</span>{/if}
+					{#if stats.turnout.excludedCount > 0}<span class="tier-pip excluded">{stats.turnout.excludedCount} excluded</span>{/if}
+				</span>
+			{/if}
 		</div>
 	</div>
 
@@ -1011,6 +1018,26 @@
 	.reliability-mid { background: #fef3c7; color: #d97706; }
 	.reliability-low { background: #fee2e2; color: #dc2626; }
 	.reliability-new { background: #f3f4f6; color: #9ca3af; }
+
+	.turnout-breakdown {
+		display: inline-flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.25rem;
+		margin-top: 0.35rem;
+	}
+
+	.tier-pip {
+		font-size: 0.65rem;
+		font-weight: 600;
+		padding: 0.1rem 0.4rem;
+		border-radius: 9999px;
+		letter-spacing: 0.01em;
+	}
+
+	.tier-pip.high { background: #dcfce7; color: #15803d; }
+	.tier-pip.mid { background: #fef3c7; color: #b45309; }
+	.tier-pip.excluded { background: #fee2e2; color: #b91c1c; }
 
 	.checkin-yes { color: #16a34a; font-weight: 600; }
 	.checkin-no { color: #d1d5db; }

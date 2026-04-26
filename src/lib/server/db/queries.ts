@@ -42,12 +42,19 @@ export interface RsvpMemberDetail {
 	reliabilityScore: number | null;
 }
 
+export interface TurnoutBreakdown {
+	estimated: number;        // whole-number expected attendees (high + mid tiers only)
+	highCount: number;        // RSVPs with reliability ≥ RELIABILITY_HIGH
+	midCount: number;         // RSVPs with reliability in [RELIABILITY_MID, RELIABILITY_HIGH)
+	excludedCount: number;    // RSVPs with reliability < RELIABILITY_MID (not counted)
+}
+
 export interface EventStats {
 	going: number;
 	maybe: number;
 	notGoing: number;
 	checkedIn: number;
-	estimatedTurnout: number;
+	turnout: TurnoutBreakdown;
 }
 
 /**
@@ -92,8 +99,29 @@ export async function getEventRsvpList(eventId: string): Promise<RsvpMemberDetai
 
 /**
  * Compute reliability scores for a set of members.
- * Reliability = (check-ins for events where member RSVP'd "going" and event is past) / (total "going" RSVPs for past events)
+ *
+ * Score = max(raw, gaussianFloor) where:
+ *   raw           = actualCheckins / totalGoing
+ *   misses        = totalGoing - actualCheckins
+ *   gaussianFloor = exp(-misses² / (2σ²))
+ *
+ * The floor follows a half-Gaussian curve in misses — the first miss is mild,
+ * each additional miss drops the floor more steeply, and after ~4 misses the
+ * floor approaches 0 so raw attendance dominates. Perfect attendance always
+ * scores 100%.
+ *
+ * σ=1.5 yields: 1 miss=80%, 2=41%, 3=14%, 4=3%, 5=0.4%.
+ *
+ * This is consumed by getEstimatedTurnout / getBatchEstimatedTurnout, so the
+ * event-list "Est. Turnout" column reflects the same Gaussian model.
  */
+const RELIABILITY_SIGMA = 1.5;
+const TWO_SIGMA_SQUARED = 2 * RELIABILITY_SIGMA * RELIABILITY_SIGMA;
+
+// Tier thresholds (must match EventDetailPanel.svelte:reliabilityColor)
+export const RELIABILITY_HIGH = 0.75;
+export const RELIABILITY_MID = 0.5;
+
 export async function getMemberReliabilityScores(
 	memberIds: string[]
 ): Promise<Map<string, number>> {
@@ -126,18 +154,28 @@ export async function getMemberReliabilityScores(
 	const scoreMap = new Map<string, number>();
 	for (const row of rows) {
 		if (row.totalGoing > 0) {
-			scoreMap.set(row.memberId, row.actualCheckins / row.totalGoing);
+			const raw = row.actualCheckins / row.totalGoing;
+			const misses = row.totalGoing - row.actualCheckins;
+			const gaussianFloor = Math.exp(-(misses * misses) / TWO_SIGMA_SQUARED);
+			scoreMap.set(row.memberId, Math.max(raw, gaussianFloor));
 		}
 	}
 	return scoreMap;
 }
 
 /**
- * Estimate turnout for an event based on RSVP'd members' reliability.
- * Going members contribute their reliability score (default 0.5 for new members).
- * Maybe members contribute reliability * 0.3.
+ * Estimate turnout for an event with a tiered breakdown.
+ *
+ * Members with reliability < RELIABILITY_MID (red tier) are excluded from the
+ * estimate entirely — they're tracked in `excludedCount` so the user can see
+ * how many flaky RSVPs were ignored. Going members contribute their reliability
+ * score; maybe members contribute reliability × 0.3. New members (no past
+ * "going" RSVPs) default to 1.0 (high tier).
  */
-export async function getEstimatedTurnout(eventId: string): Promise<number> {
+const DEFAULT_RELIABILITY = 1.0;
+const MAYBE_WEIGHT = 0.3;
+
+export async function getEstimatedTurnout(eventId: string): Promise<TurnoutBreakdown> {
 	const rsvps = await db
 		.select({
 			memberId: eventRsvps.memberId,
@@ -148,25 +186,35 @@ export async function getEstimatedTurnout(eventId: string): Promise<number> {
 			and(eq(eventRsvps.eventId, eventId), sql`${eventRsvps.status} IN ('going', 'maybe')`)
 		);
 
-	if (rsvps.length === 0) return 0;
+	if (rsvps.length === 0) {
+		return { estimated: 0, highCount: 0, midCount: 0, excludedCount: 0 };
+	}
 
 	const memberIds = rsvps.map((r) => r.memberId);
 	const scores = await getMemberReliabilityScores(memberIds);
 
-	const DEFAULT_RELIABILITY = 1.0;
-	const MAYBE_WEIGHT = 0.3;
-
 	let estimated = 0;
+	let highCount = 0;
+	let midCount = 0;
+	let excludedCount = 0;
 	for (const rsvp of rsvps) {
 		const reliability = scores.get(rsvp.memberId) ?? DEFAULT_RELIABILITY;
-		if (rsvp.status === 'going') {
-			estimated += reliability;
-		} else if (rsvp.status === 'maybe') {
-			estimated += reliability * MAYBE_WEIGHT;
+		if (reliability < RELIABILITY_MID) {
+			excludedCount += 1;
+			continue;
 		}
+		if (reliability >= RELIABILITY_HIGH) highCount += 1;
+		else midCount += 1;
+		const weight = rsvp.status === 'going' ? 1 : MAYBE_WEIGHT;
+		estimated += reliability * weight;
 	}
 
-	return Math.round(estimated * 10) / 10;
+	return {
+		estimated: Math.round(estimated),
+		highCount,
+		midCount,
+		excludedCount
+	};
 }
 
 /**
@@ -229,18 +277,20 @@ export async function getEventDetailForAdmin(eventId: string, clubType: ClubType
 		maybe: rsvpList.filter((r) => r.status === 'maybe').length,
 		notGoing: rsvpList.filter((r) => r.status === 'not_going').length,
 		checkedIn: checkins.length,
-		estimatedTurnout
+		turnout: estimatedTurnout
 	};
 
 	return { event, rsvpList, stats, historicalRate, checkinResponses: checkins };
 }
 
 /**
- * Get estimated turnout for multiple events (batch, for the events list page).
+ * Get tiered turnout breakdowns for multiple events (batch, for the events list).
+ * Same model as getEstimatedTurnout — red-tier RSVPs are excluded from the count
+ * but tracked in `excludedCount`.
  */
 export async function getBatchEstimatedTurnout(
 	eventIds: string[]
-): Promise<Map<string, number>> {
+): Promise<Map<string, TurnoutBreakdown>> {
 	if (eventIds.length === 0) return new Map();
 
 	// Get all RSVPs for these events
@@ -263,20 +313,36 @@ export async function getBatchEstimatedTurnout(
 	const allMemberIds = [...new Set(rsvps.map((r) => r.memberId))];
 	const scores = await getMemberReliabilityScores(allMemberIds);
 
-	const DEFAULT_RELIABILITY = 1.0;
-	const MAYBE_WEIGHT = 0.3;
-	const turnoutMap = new Map<string, number>();
+	const accumulator = new Map<
+		string,
+		{ estimated: number; highCount: number; midCount: number; excludedCount: number }
+	>();
 
 	for (const rsvp of rsvps) {
+		let bucket = accumulator.get(rsvp.eventId);
+		if (!bucket) {
+			bucket = { estimated: 0, highCount: 0, midCount: 0, excludedCount: 0 };
+			accumulator.set(rsvp.eventId, bucket);
+		}
 		const reliability = scores.get(rsvp.memberId) ?? DEFAULT_RELIABILITY;
-		const contribution =
-			rsvp.status === 'going' ? reliability : reliability * MAYBE_WEIGHT;
-		turnoutMap.set(rsvp.eventId, (turnoutMap.get(rsvp.eventId) ?? 0) + contribution);
+		if (reliability < RELIABILITY_MID) {
+			bucket.excludedCount += 1;
+			continue;
+		}
+		if (reliability >= RELIABILITY_HIGH) bucket.highCount += 1;
+		else bucket.midCount += 1;
+		const weight = rsvp.status === 'going' ? 1 : MAYBE_WEIGHT;
+		bucket.estimated += reliability * weight;
 	}
 
-	// Round values
-	for (const [key, val] of turnoutMap) {
-		turnoutMap.set(key, Math.round(val * 10) / 10);
+	const turnoutMap = new Map<string, TurnoutBreakdown>();
+	for (const [eventId, bucket] of accumulator) {
+		turnoutMap.set(eventId, {
+			estimated: Math.round(bucket.estimated),
+			highCount: bucket.highCount,
+			midCount: bucket.midCount,
+			excludedCount: bucket.excludedCount
+		});
 	}
 
 	return turnoutMap;

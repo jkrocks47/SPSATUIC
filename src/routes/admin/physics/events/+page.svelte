@@ -8,6 +8,7 @@
 	let showForm = $state(false);
 	let editingId = $state<string | null>(null);
 	let showQrId = $state<string | null>(null);
+	let showRsvpQrId = $state<string | null>(null);
 	let showInterests = $state(false);
 	let createQuestions = $state<CheckinQuestion[]>([]);
 	let editQuestions = $state<CheckinQuestion[]>([]);
@@ -168,8 +169,15 @@
 								{/if}
 							</td>
 							<td class="turnout-cell">
-								{#if event.estimatedTurnout > 0}
-									<span class="mini-badge turnout">~{event.estimatedTurnout}</span>
+								{#if event.turnout.estimated > 0 || event.turnout.highCount + event.turnout.midCount + event.turnout.excludedCount > 0}
+									<div class="turnout-stack">
+										<span class="mini-badge turnout">~{event.turnout.estimated}</span>
+										<span class="turnout-breakdown" title="High: ≥75% reliability; Mid: 50–75%; Excluded: &lt;50%, not counted">
+											{#if event.turnout.highCount > 0}<span class="tier-pip high">{event.turnout.highCount}H</span>{/if}
+											{#if event.turnout.midCount > 0}<span class="tier-pip mid">{event.turnout.midCount}M</span>{/if}
+											{#if event.turnout.excludedCount > 0}<span class="tier-pip excluded">{event.turnout.excludedCount}×</span>{/if}
+										</span>
+									</div>
 								{:else}
 									<span class="no-data">--</span>
 								{/if}
@@ -186,9 +194,10 @@
 							<td class="actions-cell">
 								<button class="action-btn-sm" onclick={() => { if (editingId === event.id) { editingId = null; } else { editingId = event.id; editQuestions = event.checkinQuestions ? [...event.checkinQuestions] : []; } }}>Edit</button>
 								{#if event.checkinCode}
-									<button class="action-btn-sm qr" onclick={() => showQrId = showQrId === event.id ? null : event.id}>QR</button>
-									<a href="/admin/poster/{event.id}" target="_blank" class="action-btn-sm poster">Poster</a>
+									<button class="action-btn-sm qr" onclick={() => { showQrId = showQrId === event.id ? null : event.id; if (showQrId) showRsvpQrId = null; }}>Check In</button>
 								{/if}
+								<button class="action-btn-sm rsvp" onclick={() => { showRsvpQrId = showRsvpQrId === event.id ? null : event.id; if (showRsvpQrId) showQrId = null; }}>RSVP</button>
+								<a href="/admin/poster/{event.id}" target="_blank" class="action-btn-sm poster">Poster</a>
 								<form method="POST" action="?/delete" use:enhance class="inline-form">
 									<input type="hidden" name="id" value={event.id} />
 									<button type="submit" class="delete-btn" onclick={(e) => {
@@ -203,9 +212,22 @@
 								<td colspan="7" class="qr-row">
 									<div class="qr-info">
 										<p class="qr-label">Check-In QR Code <span class="qr-only-badge">Check-In Only</span></p>
-										<p class="qr-hint">This QR code is <strong>for check-in only</strong> — members scan it at the event to record attendance. For RSVP, use the Poster page.</p>
+										<p class="qr-hint">This QR code is <strong>for check-in only</strong> — members scan it at the event to record attendance. Scans before the event starts will be redirected to RSVP.</p>
 										<code class="qr-url">/checkin/{event.id}?code={event.checkinCode}</code>
 										<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={encodeURIComponent(`${typeof window !== 'undefined' ? window.location.origin : ''}/checkin/${event.id}?code=${event.checkinCode}`)}" alt="QR Code" class="qr-image" />
+									</div>
+								</td>
+							</tr>
+						{/if}
+
+						{#if showRsvpQrId === event.id}
+							<tr>
+								<td colspan="7" class="qr-row">
+									<div class="qr-info">
+										<p class="qr-label">RSVP QR Code <span class="qr-only-badge rsvp-badge">RSVP</span></p>
+										<p class="qr-hint">This QR code links to the public event page where members can RSVP.</p>
+										<code class="qr-url">/event/{event.id}</code>
+										<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={encodeURIComponent(`${typeof window !== 'undefined' ? window.location.origin : ''}/event/${event.id}`)}" alt="RSVP QR Code" class="qr-image" />
 									</div>
 								</td>
 							</tr>
@@ -214,7 +236,7 @@
 						{#if editingId === event.id}
 							<tr>
 								<td colspan="7" class="edit-row">
-									<form method="POST" action="?/edit" use:enhance={() => {
+									<form method="POST" action="?/edit" enctype="multipart/form-data" use:enhance={() => {
 										return async ({ update }) => { await update(); editingId = null; };
 									}}>
 										<input type="hidden" name="id" value={event.id} />
@@ -226,6 +248,20 @@
 											<div class="form-group"><label>Location</label><input type="text" name="location" value={event.location || ''} /></div>
 											<div class="form-group"><label>Location URL</label><input type="url" name="locationUrl" value={event.locationUrl || ''} /></div>
 											<div class="form-group"><label>Max Attendees</label><input type="number" name="maxAttendees" min="1" value={event.maxAttendees || ''} /></div>
+											<div class="form-group full-width image-edit-group">
+												<label>{event.imageUrl ? 'Replace Image' : 'Add Image'}</label>
+												{#if event.imageUrl}
+													<div class="current-image">
+														<img src={event.imageUrl} alt="Current event image" />
+														<label class="remove-image-label">
+															<input type="checkbox" name="removeImage" />
+															Remove image
+														</label>
+													</div>
+												{/if}
+												<input type="file" name="image" accept="image/*" />
+												<p class="field-hint">Upload a new image to {event.imageUrl ? 'replace the current one' : 'attach to this event'}.</p>
+											</div>
 											<div class="form-group checkbox-group"><label><input type="checkbox" name="isPublished" checked={event.isPublished} /> Published</label></div>
 										<div class="form-group checkbox-group"><label><input type="checkbox" name="rsvpRequired" checked={event.rsvpRequired} /> RSVP Required</label></div>
 										</div>
@@ -296,6 +332,12 @@
 	.mini-badge.going { background: #dcfce7; color: #16a34a; }
 	.mini-badge.maybe { background: #fef3c7; color: #d97706; }
 	.mini-badge.turnout { background: #ede9fe; color: #7c3aed; }
+	.turnout-stack { display: flex; flex-direction: column; align-items: flex-start; gap: 0.2rem; }
+	.turnout-breakdown { display: inline-flex; gap: 0.25rem; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.02em; }
+	.tier-pip { padding: 0.05rem 0.3rem; border-radius: 9999px; line-height: 1; }
+	.tier-pip.high { background: #dcfce7; color: #15803d; }
+	.tier-pip.mid { background: #fef3c7; color: #b45309; }
+	.tier-pip.excluded { background: #fee2e2; color: #b91c1c; }
 	.no-data { color: #d1d5db; }
 	.badge-btn { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; cursor: pointer; border: none; }
 	.badge-btn:hover { opacity: 0.8; }
@@ -306,6 +348,8 @@
 	.action-btn-sm:hover { background: #f3f4f6; }
 	.action-btn-sm.qr { border-color: #c4b5fd; color: #7c3aed; }
 	.action-btn-sm.qr:hover { background: #f5f3ff; }
+	.action-btn-sm.rsvp { border-color: #86efac; color: #15803d; }
+	.action-btn-sm.rsvp:hover { background: #f0fdf4; }
 
 	.action-btn-sm.poster {
 		border-color: #93c5fd;
@@ -324,9 +368,13 @@
 	.qr-info { text-align: center; }
 	.qr-label { font-size: 0.75rem; font-weight: 600; color: #374151; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.5rem; }
 	.qr-only-badge { font-size: 0.65rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 9999px; background: #dcfce7; color: #15803d; letter-spacing: 0.02em; text-transform: uppercase; }
+	.qr-only-badge.rsvp-badge { background: #ede9fe; color: #6d28d9; }
 	.qr-url { display: block; font-size: 0.7rem; color: #6b7280; background: #fff; padding: 0.4rem 0.75rem; border-radius: 0.25rem; border: 1px solid #e5e7eb; margin-bottom: 0.5rem; word-break: break-all; }
 	.qr-hint { font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.75rem; }
 	.qr-image { width: 200px; height: 200px; border-radius: 0.5rem; }
+	.image-edit-group .current-image { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+	.image-edit-group .current-image img { width: 96px; height: 96px; object-fit: cover; border-radius: 0.375rem; border: 1px solid #e5e7eb; }
+	.remove-image-label { display: flex !important; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #dc2626; font-weight: 500; cursor: pointer; margin: 0 !important; }
 	/* Interest Panel */
 	.interest-panel {
 		background: #fff;

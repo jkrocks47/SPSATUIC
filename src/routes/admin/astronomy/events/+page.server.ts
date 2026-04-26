@@ -68,7 +68,7 @@ export const load: PageServerLoad = async () => {
 		...e,
 		rsvpCounts: rsvpMap[e.id] || { going: 0, maybe: 0, not_going: 0 },
 		attendanceCount: checkinMap[e.id] || 0,
-		estimatedTurnout: turnoutMap.get(e.id) ?? 0
+		turnout: turnoutMap.get(e.id) ?? { estimated: 0, highCount: 0, midCount: 0, excludedCount: 0 }
 	}));
 
 	const interestResult = await getInterestBreakdown();
@@ -188,6 +188,33 @@ export const actions: Actions = {
 			}
 		}
 
+		const existing = await db
+			.select({ imageGroupId: events.imageGroupId })
+			.from(events)
+			.where(and(eq(events.id, id), eq(events.clubType, 'astronomy')))
+			.limit(1);
+		if (existing.length === 0) return fail(404, { error: 'Event not found.' });
+
+		let imageUpdate: { imageUrl: string | null; imageGroupId: string | null } | null = null;
+		let oldGroupIdToDelete: string | null = null;
+
+		const imageFile = formData.get('image');
+		const removeImage = formData.get('removeImage') === 'on';
+		if (imageFile instanceof File && imageFile.size > 0) {
+			try {
+				const result = await processAndStoreImage(imageFile);
+				imageUpdate = { imageUrl: result.url, imageGroupId: result.groupId };
+				oldGroupIdToDelete = existing[0].imageGroupId;
+			} catch (err) {
+				const message = err instanceof Error ? err.message : 'Unknown error';
+				console.error('Event image upload failed:', message);
+				return fail(400, { error: message });
+			}
+		} else if (removeImage && existing[0].imageGroupId) {
+			imageUpdate = { imageUrl: null, imageGroupId: null };
+			oldGroupIdToDelete = existing[0].imageGroupId;
+		}
+
 		await db
 			.update(events)
 			.set({
@@ -201,9 +228,18 @@ export const actions: Actions = {
 				rsvpRequired: parsed.data.rsvpRequired,
 				maxAttendees: parsed.data.maxAttendees || null,
 				checkinQuestions: checkinQuestions !== undefined ? checkinQuestions : undefined,
+				...(imageUpdate ?? {}),
 				updatedAt: new Date()
 			})
 			.where(and(eq(events.id, id), eq(events.clubType, 'astronomy')));
+
+		if (oldGroupIdToDelete) {
+			try {
+				await deleteImage(oldGroupIdToDelete);
+			} catch {
+				// non-fatal — orphaned image
+			}
+		}
 
 		return { success: true };
 	},

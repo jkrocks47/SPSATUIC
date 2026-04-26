@@ -7,10 +7,12 @@ import type { PageServerLoad } from './$types';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export const load: PageServerLoad = async ({ params, locals }) => {
+export const load: PageServerLoad = async ({ params, locals, url }) => {
 	if (!UUID_RE.test(params.eventId)) {
 		error(404, 'Event not found');
 	}
+
+	const notStarted = url.searchParams.get('notStarted') === '1';
 
 	const result = await db
 		.select()
@@ -40,6 +42,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 				rsvpRequired: event.rsvpRequired
 			},
 			isPast,
+			notStarted: false,
 			rsvpCounts: { going: 0, maybe: 0, not_going: 0 },
 			memberRsvp: null as 'going' | 'maybe' | 'not_going' | null,
 			isLoggedIn: !!locals.member,
@@ -87,6 +90,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			rsvpRequired: event.rsvpRequired
 		},
 		isPast,
+		notStarted,
 		rsvpCounts: counts,
 		memberRsvp,
 		isLoggedIn: !!locals.member,
